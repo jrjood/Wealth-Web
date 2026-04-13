@@ -66,9 +66,7 @@ const HeroSection = () => {
         className='absolute bottom-8 right-6 z-[1] flex cursor-pointer items-center justify-center bg-transparent p-0 text-brand-cream transition-colors duration-200 hover:text-brand-cream/90 md:bottom-10 md:right-10'
         onClick={handleScrollToNextSection}
       >
-        <span className='text-xs font-light uppercase md:text-sm'>
-          Scroll
-        </span>
+        <span className='text-xs font-light uppercase md:text-sm'>Scroll</span>
         <ArrowDown className='ml-1 h-4 w-4 [animation:scroll-arrow-u-d_9s_infinite_ease-in-out] md:h-5 md:w-5' />
       </button>
     </section>
