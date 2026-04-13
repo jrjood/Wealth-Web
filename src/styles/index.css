@@ -1,0 +1,202 @@
+@import url('https://fonts.cdnfonts.com/css/montserrat');
+@import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300;400;500;600;700;800;900&display=swap');
+@import 'tailwindcss';
+
+:root {
+  --brand-black: 0 0% 0%;
+  --brand-black-900: 0 0% 6%;
+  --brand-black-800: 0 0% 10%;
+  --brand-black-700: 0 0% 16%;
+  --brand-white: 0 0% 100%;
+  --brand-red-900: 358 100% 24%;
+  --brand-red-700: 358 100% 32%;
+  --brand-red-500: 358 100% 40%;
+  --brand-red-300: 358 85% 55%;
+  --brand-red-100: 358 60% 85%;
+  --brand-gold: 38 57% 39%;
+  --brand-yellow: 43 100% 49%;
+  --brand-gray: 0 0% 78%;
+  --brand-cream: 53 38% 90%;
+}
+
+@theme inline {
+  --font-sans: 'Red Hat Display', 'Montserrat', sans-serif;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    width: 100%;
+    min-height: 100%;
+  }
+
+  html,
+  body {
+    overflow-x: hidden;
+    scrollbar-width: none;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    background-color: hsl(var(--brand-black));
+    color: hsl(var(--brand-white));
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button,
+  input,
+  textarea {
+    font: inherit;
+  }
+
+  img,
+  video {
+    display: block;
+    max-width: 100%;
+  }
+}
+
+@layer utilities {
+  .reveal-up {
+    opacity: 0;
+    transform: translateY(36px) scale(0.98);
+    transition:
+      opacity 0.8s ease,
+      transform 0.8s ease;
+    transition-delay: var(--reveal-delay, 0ms);
+    will-change: opacity, transform;
+  }
+
+  .reveal-up.is-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .roadmap-item.active {
+    filter: saturate(1);
+    opacity: 1;
+  }
+
+  .roadmap-item:not(.active) .roadmap-content {
+    opacity: 0.72;
+    transform: translateY(10px);
+  }
+
+  .roadmap-item.active .roadmap-line {
+    opacity: 1;
+  }
+
+  .roadmap-item.active .roadmap-number,
+  .roadmap-item.active .roadmap-text {
+    color: hsl(var(--brand-white) / 0.9);
+  }
+
+  .roadmap-word {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+    transition:
+      opacity 0.5s ease,
+      transform 0.5s ease;
+  }
+
+  .roadmap-word.active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes scroll-arrow-u-d {
+  0% {
+    transform: translateY(0);
+  }
+  10% {
+    transform: translateY(-5px);
+  }
+  20% {
+    transform: translateY(-8px);
+  }
+  30% {
+    transform: translateY(-8px);
+  }
+  40% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+  60% {
+    transform: translateY(0);
+  }
+  70% {
+    transform: translateY(-5px);
+  }
+  80% {
+    transform: translateY(0);
+  }
+  90% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes future-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes future-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes logo-strip-scroll-left {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes logo-strip-scroll-right {
+  from {
+    transform: translate3d(-50%, 0, 0);
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}

@@ -1,0 +1,126 @@
+/* Para Effect Section Styles */
+#para-effect-section {
+  position: relative;
+  width: 100vw;
+  height: clamp(18rem, 36vw, 40rem);
+  overflow: hidden;
+  background:
+    linear-gradient(
+      180deg,
+      hsl(var(--brand-black) / 0.3),
+      hsl(var(--brand-black-900) / 0.58)
+    ),
+    url('/background-dark.avif') center / cover no-repeat;
+}
+
+.para-effect-marquee {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.para-effect-marquee .scroll-text-marque {
+  padding-block: 0.22em;
+}
+
+.para-effect-marquee--front {
+  top: 31%;
+  z-index: 6;
+}
+
+.para-effect-marquee--back {
+  top: 44%;
+  z-index: 4;
+}
+
+.para-effect-marquee-text {
+  display: inline-block;
+  color: hsl(var(--brand-white) / 0.94);
+  font-family: 'Red Hat Display', 'Montserrat', sans-serif;
+  font-size: clamp(2.8rem, 5.6vw, 5.4rem);
+  line-height: 1.14;
+  padding-block: 0.04em;
+  font-weight: 300;
+  letter-spacing: -0.07em;
+  text-transform: lowercase;
+  white-space: nowrap;
+  text-shadow: 0 6px 18px hsl(var(--brand-black) / 0.2);
+}
+
+.para-effect-marquee-text--accent {
+  color: hsl(var(--brand-white));
+  font-style: italic;
+  font-weight: 400;
+}
+
+.para-effect-building {
+  position: relative;
+  z-index: 4;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.para-effect-building-wrap {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: clamp(-24rem, -22vw, -8rem);
+  z-index: 4;
+  width: clamp(48rem, 100vw, 104rem);
+}
+
+.para-effect-building-fade {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 5;
+
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  #para-effect-section {
+    height: clamp(17rem, 55vw, 30rem);
+  }
+
+  .para-effect-marquee--front {
+    top: 35%;
+  }
+
+  .para-effect-marquee--back {
+    top: 47%;
+  }
+
+  .para-effect-marquee-text {
+    font-size: clamp(2.1rem, 8.5vw, 3.5rem);
+  }
+
+  .para-effect-building-wrap {
+    width: clamp(38rem, 126vw, 66rem);
+  }
+}
+
+@media (max-width: 640px) {
+  #para-effect-section {
+    height: clamp(15.5rem, 62vw, 23rem);
+  }
+
+  .para-effect-marquee--front {
+    top: 34%;
+  }
+
+  .para-effect-marquee--back {
+    top: 46%;
+  }
+
+  .para-effect-building-wrap {
+    width: clamp(33rem, 142vw, 56rem);
+  }
+}

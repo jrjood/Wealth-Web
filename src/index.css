@@ -1,0 +1,326 @@
+/* Wealth Holding Design System */
+
+/* Import external stylesheets first */
+@import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@300;400;500;600;700;800;900&display=swap');
+
+/* Custom Font Import */
+@font-face {
+  font-family: 'Ivy Presto';
+  src: url('/IvyPresto Headline Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Font Loading Optimization */
+@layer base {
+  * {
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer base {
+  :root {
+    /* Brand Colors */
+    --brand-primary: 0 100% 40%; /* #CC000A */
+    --brand-gold: 38 57% 39%; /* #9B6D2C */
+    --brand-black: 0 0% 0%; /* #000000 */
+    --brand-yellow: 43 100% 49%; /* #F9B500 */
+    --brand-gray: 0 0% 78%; /* #C6C6C6 */
+    --brand-cream: 53 38% 90%; /* #EEEDDA */
+
+    /* Legacy landing color ramps from standalone */
+    --brand-white: 0 0% 100%;
+    --brand-black-900: 0 0% 6%;
+    --brand-black-800: 0 0% 10%;
+    --brand-black-700: 0 0% 16%;
+    --brand-red-900: 358 100% 24%;
+    --brand-red-700: 358 100% 32%;
+    --brand-red-500: 358 100% 40%;
+    --brand-red-300: 358 85% 55%;
+    --brand-red-100: 358 60% 85%;
+
+    /* Light Theme */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 5%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 5%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 5%;
+
+    --primary: 0 100% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 38 57% 39%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;
+
+    --accent: 43 100% 49%;
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 100% 40%;
+
+    --radius: 0.25rem;
+
+    /* Custom Design Tokens */
+    --hero-gradient: linear-gradient(
+      135deg,
+      hsl(0 0% 0% / 0.85),
+      hsl(0 0% 0% / 0.6)
+    );
+    --card-shadow: 0 4px 24px -4px hsl(0 0% 0% / 0.08);
+    --card-shadow-hover: 0 12px 40px -8px hsl(0 0% 0% / 0.15);
+    --gold-gradient: linear-gradient(135deg, hsl(38 57% 39%), hsl(43 100% 49%));
+    --text-shadow: 0 2px 4px hsl(0 0% 0% / 0.1);
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  [data-theme='dark'] {
+    --background: 0 0% 8%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 100% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 38 57% 45%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 0 0% 16%;
+    --muted-foreground: 0 0% 70%;
+
+    --accent: 43 100% 55%;
+    --accent-foreground: 0 0% 0%;
+
+    --border: 0 0% 22%;
+    --input: 0 0% 22%;
+    --ring: 0 100% 45%;
+
+    --hero-gradient: linear-gradient(
+      135deg,
+      hsl(0 0% 0% / 0.9),
+      hsl(0 0% 0% / 0.7)
+    );
+    --card-shadow: 0 4px 24px -4px hsl(0 0% 0% / 0.4);
+    --card-shadow-hover: 0 12px 40px -8px hsl(0 0% 0% / 0.6);
+
+    --sidebar-background: 0 0% 8%;
+    --sidebar-foreground: 53 38% 92%;
+    --sidebar-primary: 0 100% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 53 38% 92%;
+    --sidebar-border: 0 0% 18%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 100px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Red Hat Display', sans-serif, system-ui;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+
+  h1 {
+    /* font-family: 'Ivy Presto'; */
+  }
+
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Red Hat Display';
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    /* text-transform: uppercase; */
+  }
+}
+
+/* Hide native scrollbars on all scrollable elements while using the custom overlay scrollbar */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+@layer components {
+  .heading-display {
+    @apply text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1];
+  }
+
+  .heading-section {
+    @apply text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-tight;
+  }
+
+  .heading-card {
+    @apply text-xl md:text-2xl font-semibold leading-tight;
+  }
+
+  .text-body-lg {
+    @apply text-base sm:text-lg md:text-xl leading-relaxed;
+  }
+
+  .text-body {
+    @apply text-sm sm:text-base leading-relaxed;
+  }
+
+  .gradient-gold {
+    background: var(--gold-gradient);
+  }
+
+  .gradient-hero {
+    background: var(--hero-gradient);
+  }
+
+  .card-elevated {
+    box-shadow: var(--card-shadow);
+    transition:
+      box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+      transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-elevated:hover {
+    box-shadow: var(--card-shadow-hover);
+    transform: translateY(-4px);
+  }
+
+  .text-gradient-gold {
+    background: var(--gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .section-padding {
+    @apply py-12 sm:py-16 md:py-20 lg:py-28 xl:py-32;
+  }
+
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Smooth focus states for accessibility */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer utilities {
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .animation-delay-400 {
+    animation-delay: 400ms;
+  }
+
+  .animation-delay-600 {
+    animation-delay: 600ms;
+  }
+
+  .roadmap-item.active {
+    filter: saturate(1);
+    opacity: 1;
+  }
+
+  .roadmap-item:not(.active) .roadmap-content {
+    opacity: 0.72;
+    transform: translateY(10px);
+  }
+
+  .roadmap-item.active .roadmap-line {
+    opacity: 1;
+  }
+
+  .roadmap-item.active .roadmap-number,
+  .roadmap-item.active .roadmap-text {
+    color: hsl(var(--brand-white) / 0.9);
+  }
+
+  .roadmap-word {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+    transition:
+      opacity 0.5s ease,
+      transform 0.5s ease;
+  }
+
+  .roadmap-word.active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes logo-strip-scroll-left {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes logo-strip-scroll-right {
+  from {
+    transform: translate3d(-50%, 0, 0);
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}

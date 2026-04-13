@@ -1,0 +1,236 @@
+/* Footer Component Styles */
+#footer {
+  position: relative;
+  width: 100vw;
+  height: 46.5vh;
+  background-color: hsl(var(--brand-black-900));
+}
+
+.footer-quicklinks {
+  position: absolute;
+  top: 3.8vh;
+  left: 9.4vw;
+  display: flex;
+  gap: 9.4vw;
+  font-family: 'Red Hat Display', 'Montserrat', sans-serif;
+  font-weight: 100;
+  color: rgba(255, 255, 255, 0.925);
+}
+
+.footer-quicklinks h4 {
+  white-space: nowrap;
+  font-size: 0.86vw;
+  font-weight: 400;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.footer-link {
+  position: relative;
+}
+
+.footer-link::before {
+  content: '';
+  position: absolute;
+  top: 1.5vw;
+  width: 100%;
+  height: 1px;
+  border-radius: 0.5px;
+  transform: scaleX(0);
+  background-color: hsl(var(--brand-cream));
+  transition: all 0.3s ease-in-out;
+}
+
+.footer-link:hover::before {
+  transform: scaleX(1);
+}
+
+.footer-coloumn-a,
+.footer-coloumn-b {
+  display: flex;
+  align-items: start;
+  justify-content: start;
+  flex-direction: column;
+  gap: 0.86vw;
+}
+
+#cr {
+  position: absolute;
+  bottom: 9.6vh;
+  left: 9.4vw;
+  white-space: nowrap;
+  font-size: 0.97vw;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  font-family: 'Red Hat Display', 'Montserrat', sans-serif;
+  font-weight: 100;
+  color: rgba(255, 255, 255, 0.911);
+}
+
+#cr a {
+  color: hsl(var(--brand-red-100));
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+  transition:
+    color 0.25s ease,
+    text-decoration-thickness 0.25s ease;
+}
+
+#cr a:hover {
+  color: hsl(var(--brand-red-300));
+  text-decoration-thickness: 2px;
+}
+
+#subscribe-wrapper {
+  position: absolute;
+  top: 3.8vh;
+  right: 9.4vw;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  justify-content: space-between;
+}
+
+#subscribe-wrapper > h2 {
+  font-size: 1.6vw;
+  font-family: 'Red Hat Display', 'Montserrat', sans-serif;
+  font-weight: 100;
+  color: #fff;
+}
+
+#input-email {
+  margin-top: 4vh;
+  position: relative;
+}
+
+#input-email > input {
+  width: 26.7vw;
+  font-size: 1vw;
+  font-family: 'Red Hat Display', 'Montserrat', sans-serif;
+  border: none;
+  border-radius: 0;
+  outline: none;
+  background: none;
+  box-shadow: none;
+  padding-bottom: 1.1vh;
+  border-bottom: 1px solid hsl(var(--brand-cream) / 0.3);
+  font-weight: 100;
+  color: #fff;
+  background-color: transparent;
+  transition: border-bottom-color 0.4s;
+}
+
+#input-email > input[type='text']:focus {
+  border-bottom-color: hsl(var(--brand-cream));
+}
+
+#input-email > input[type='text']::placeholder {
+  color: rgba(255, 255, 255, 0.849);
+  font-size: 1vw;
+  font-family: 'Red Hat Display', 'Montserrat', sans-serif;
+  font-weight: 100;
+}
+
+#input-email > input[type='text']:hover {
+  border-bottom-color: hsl(var(--brand-cream));
+}
+
+.input-email-arrow-wrapper {
+  position: absolute;
+  top: 0;
+  right: 0;
+  overflow: hidden;
+  margin-left: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.input-email-arrow-wrapper:hover #visible-ar-input-email {
+  transform: translateX(24px);
+}
+
+.input-email-arrow-wrapper:hover #hidden-ar-input-email {
+  transform: translateX(0);
+}
+
+#visible-ar-input-email {
+  transition: all 0.3s cubic-bezier(0.9, 0.28, 0.35, 0.015);
+}
+
+#hidden-ar-input-email {
+  position: absolute;
+  transform: translateX(-24px);
+  transition: all 0.3s cubic-bezier(0.9, 0.28, 0.35, 0.015);
+}
+
+@media (max-width: 900px) {
+  #footer {
+    width: 100%;
+    height: auto;
+    padding: 2.4rem 6vw 2rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .footer-quicklinks {
+    position: static;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.4rem 1.8rem;
+    order: 1;
+  }
+
+  .footer-quicklinks h4 {
+    font-size: 0.72rem;
+    font-weight: 400;
+    line-height: 1.45;
+  }
+
+  .footer-link::before {
+    top: calc(100% + 0.28rem);
+  }
+
+  .footer-coloumn-a,
+  .footer-coloumn-b {
+    gap: 0.55rem;
+  }
+
+  #subscribe-wrapper {
+    position: static;
+    margin-top: 2rem;
+    width: 100%;
+    order: 2;
+  }
+
+  #subscribe-wrapper > h2 {
+    font-size: 1.45rem;
+    line-height: 1.1;
+  }
+
+  #input-email {
+    margin-top: 1rem;
+    width: 100%;
+  }
+
+  #input-email > input {
+    width: 100%;
+    padding-bottom: 0.7rem;
+    font-size: 1rem;
+  }
+
+  #input-email > input[type='text']::placeholder {
+    font-size: 1rem;
+  }
+
+  #cr {
+    position: static;
+    margin-top: 1.6rem;
+    font-size: 0.74rem;
+    line-height: 1.35;
+    order: 3;
+  }
+}

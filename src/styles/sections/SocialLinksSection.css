@@ -1,0 +1,101 @@
+/* Social Links Section Styles */
+#page14 {
+  position: relative;
+  min-height: 100svh;
+  width: 100%;
+  background-color: hsl(var(--brand-black-900));
+  margin-bottom: -12px;
+}
+
+.page14-inner {
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6vw;
+  font-family: 'Red Hat Display', 'Montserrat', sans-serif;
+  min-height: 5.5rem;
+  height: 14.5vh;
+  width: 100%;
+  color: #fff;
+  border-top: 0.5px solid hsl(var(--brand-black-700));
+}
+
+.page14-inner > i {
+  font-weight: 100;
+  font-size: clamp(1.6rem, 8.2vw, 2.4rem);
+  position: relative;
+  z-index: 9999;
+}
+
+.page14-inner > h1 {
+  font-size: clamp(1.6rem, 8.2vw, 2.4rem);
+  font-weight: 100;
+  position: relative;
+  z-index: 9999;
+}
+
+.page14-inner > h1 > i {
+  font-size: clamp(1.6rem, 8.2vw, 2.4rem);
+  font-weight: 100;
+  position: relative;
+  z-index: 9999;
+}
+
+.center14 {
+  height: 0%;
+  width: 100%;
+  background-color: hsl(var(--brand-red-500));
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transition: all ease 0.5s;
+}
+
+.page14-inner:hover .center14 {
+  height: 100%;
+}
+
+.page14-inner:active .center14 {
+  height: 100%;
+}
+
+@media (max-width: 640px) {
+  #page14 {
+    min-height: 84svh;
+  }
+
+  .page14-inner {
+    height: 13.5vh;
+    min-height: 4.9rem;
+    padding: 0 5vw;
+  }
+
+  .page14-inner > i,
+  .page14-inner > h1,
+  .page14-inner > h1 > i {
+    font-size: clamp(1.45rem, 8.7vw, 2.05rem);
+  }
+}
+
+@media (min-width: 901px) {
+  #page14 {
+    height: 100vh;
+    min-height: 0;
+    width: 100vw;
+  }
+
+  .page14-inner {
+    padding: 0 9vw;
+    height: 18vh;
+    min-height: 0;
+  }
+
+  .page14-inner > i,
+  .page14-inner > h1,
+  .page14-inner > h1 > i {
+    font-size: 2.4vw;
+  }
+}

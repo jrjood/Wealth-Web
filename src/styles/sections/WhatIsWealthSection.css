@@ -1,0 +1,209 @@
+/* What Is Wealth Section Styles */
+.what-is-wealth-section {
+  position: relative;
+  display: flex;
+  min-height: 100vh;
+  width: 100vw;
+  flex-direction: column;
+  background-color: hsl(var(--brand-black-800));
+  overflow: hidden;
+}
+
+.what-is-wealth-copy,
+.what-is-wealth-media {
+  position: relative;
+}
+
+.what-is-wealth-copy {
+  min-height: 38vh;
+  display: flex;
+  align-items: center;
+  padding: 4rem 6vw 2.5rem;
+  background:
+    radial-gradient(
+      120% 80% at 15% 10%,
+      hsl(var(--brand-red-500) / 0.16),
+      transparent 58%
+    ),
+    hsl(var(--brand-black-800));
+}
+
+.what-is-wealth-copy-inner {
+  max-width: 36rem;
+}
+
+.what-is-wealth-kicker {
+  display: inline-block;
+  margin-bottom: 1rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: hsl(var(--brand-red-300));
+  opacity: 0.92;
+}
+
+.what-is-wealth-title {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
+  font-size: clamp(2.55rem, 9vw, 4.8rem);
+  font-weight: 300;
+  line-height: 0.93;
+  letter-spacing: -0.04em;
+  color: hsl(var(--brand-red-300));
+  text-wrap: balance;
+}
+
+.what-is-wealth-description {
+  margin: 1.2rem 0 0;
+  max-width: 28ch;
+  font-size: clamp(0.98rem, 2.6vw, 1.2rem);
+  line-height: 1.65;
+  font-weight: 300;
+  color: hsl(var(--brand-white) / 0.78);
+}
+
+.what-is-wealth-media {
+  min-height: 62vh;
+  padding: 1.4rem 0 2.2rem;
+  background-color: hsl(var(--brand-black-800));
+}
+
+.what-is-wealth-media-frame {
+  position: absolute;
+  left: 16%;
+  top: 12%;
+  width: 74%;
+  height: 68%;
+  overflow: hidden;
+  box-shadow: 0 24px 70px hsl(var(--brand-black) / 0.42);
+}
+
+.what-is-wealth-image-main {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.what-is-wealth-media-overlay {
+  position: absolute;
+  left: calc(16% - 32% + 2.5%);
+  bottom: 30%;
+  z-index: 2;
+  width: 32%;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.what-is-wealth-image-overlay {
+  width: 100%;
+  object-fit: cover;
+  box-shadow: 0 22px 60px hsl(var(--brand-black) / 0.65);
+  backface-visibility: hidden;
+}
+
+.what-is-wealth-glow {
+  pointer-events: none;
+  position: absolute;
+  right: -10%;
+  bottom: -10%;
+  height: 16rem;
+  width: 16rem;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle,
+    hsl(var(--brand-red-500) / 0.22),
+    transparent 65%
+  );
+  filter: blur(10px);
+}
+
+@media (min-width: 768px) {
+  .what-is-wealth-section {
+    flex-direction: row;
+  }
+
+  .what-is-wealth-copy {
+    width: 37%;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .what-is-wealth-copy-inner {
+    margin-left: 9.38vw;
+    max-width: 23rem;
+  }
+
+  .what-is-wealth-kicker {
+    margin-bottom: 1.25rem;
+    font-size: 0.72rem;
+  }
+
+  .what-is-wealth-title {
+    font-size: clamp(2.8rem, 3vw, 4.5rem);
+  }
+
+  .what-is-wealth-description {
+    margin-top: 1.5rem;
+    font-size: clamp(0.95rem, 1.05vw, 1.18rem);
+    max-width: 27ch;
+  }
+
+  .what-is-wealth-media {
+    width: 63%;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .what-is-wealth-media-frame {
+    left: 14%;
+    top: 22vh;
+    width: 64%;
+    height: 64%;
+  }
+
+  .what-is-wealth-media-overlay {
+    left: calc(29% - 27% + 2.5%);
+    bottom: 30vh;
+    width: 27%;
+  }
+}
+
+@media (max-width: 767px) {
+  .what-is-wealth-media-overlay {
+    left: 5%;
+    width: 32%;
+  }
+}
+
+@media (max-width: 480px) {
+  .what-is-wealth-copy {
+    padding-top: 3.4rem;
+  }
+
+  .what-is-wealth-title {
+    font-size: clamp(2.2rem, 11.5vw, 3.1rem);
+  }
+
+  .what-is-wealth-description {
+    max-width: 32ch;
+  }
+
+  .what-is-wealth-media {
+    min-height: 58vh;
+  }
+
+  .what-is-wealth-media-frame {
+    left: 18%;
+    top: 12%;
+    width: 70%;
+    height: 64%;
+  }
+
+  .what-is-wealth-media-overlay {
+    left: 4%;
+    bottom: 26%;
+    width: 34%;
+  }
+}
