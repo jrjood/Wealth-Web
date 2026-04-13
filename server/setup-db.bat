@@ -31,8 +31,7 @@ if %ERRORLEVEL% EQU 0 (
     echo Waiting for MySQL to be ready...
     timeout /t 10 /nobreak >nul
     echo.
-    echo Now run: npm run db:push
-    echo Then run: npm run dev
+    echo Run: npm run dev
 ) else (
     echo.
     echo Failed to start MySQL container. It may already exist.

@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import nodemailer from 'nodemailer';
-import { prisma } from './lib/prisma.js';
 import authRoutes from './routes/auth.js';
 import projectsRoutes from './routes/projects.js';
 import jobsRoutes from './routes/jobs.js';
@@ -10,31 +9,6 @@ import jobApplicationsRoutes from './routes/jobApplications.js';
 import postsRoutes from './routes/posts.js';
 
 dotenv.config();
-
-// Test database connection on startup (async, doesn't block server start)
-// async function testDatabaseConnection() {
-//   try {
-//     await prisma.$connect();
-//     console.log('✓ Database connected successfully');
-//     await prisma.$disconnect();
-//   } catch (error) {
-//     console.error('\n❌ DATABASE CONNECTION FAILED!');
-//     console.error('Please configure your MySQL database in server/.env');
-//     console.error('Current DATABASE_URL:', process.env.DATABASE_URL?.replace(/:[^:@]+@/, ':****@'));
-//     console.error('\nError:', error.message);
-//     console.error('\nTo fix this:');
-//     console.error('1. Install MySQL locally, or');
-//     console.error('2. Use Docker: docker run -d --name mysql -e MYSQL_ROOT_PASSWORD=password -e MYSQL_DATABASE=wealth_holding -p 3306:3306 mysql:8');
-//     console.error('3. Update DATABASE_URL in server/.env with valid credentials');
-//     console.error('\nServer will continue running with empty data until database is configured.\n');
-//     // Don't rethrow - let the server continue
-//   }
-// }
-
-// Call but don't await - let it run in background
-// testDatabaseConnection().catch((error) => {
-//   console.error('Unexpected error in testDatabaseConnection:', error);
-// });
 
 const app = express();
 const port = Number(process.env.PORT) || 3001;

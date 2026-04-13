@@ -4,14 +4,8 @@ import { Link } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { MapPin, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import project1 from '@/assets/images/about-1.jpg';
-import project2 from '@/assets/images/about-2.jpg';
-import project3 from '@/assets/images/office-building.webp';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-
-// Fallback images for projects
-const fallbackImages = [project1, project2, project3];
 
 interface Project {
   id: number;
@@ -148,10 +142,7 @@ const Projects = () => {
                     <div className='relative overflow-hidden rounded-sm card-elevated'>
                       <div className='aspect-[4/3] overflow-hidden'>
                         <img
-                          src={
-                            project.imageUrl ||
-                            fallbackImages[index % fallbackImages.length]
-                          }
+                          src={project.imageUrl || undefined}
                           alt={project.title}
                           className='w-full h-full object-cover transition-transform duration-700 group-hover:scale-110'
                         />

@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Layout } from '@/components/layout/Layout';
 import { Target, Award } from 'lucide-react';
 import owner1 from '@/assets/images/owner1.jpg';
-import owner2 from '@/assets/images/owner2.jpeg';
+import owner2 from '@/assets/images/owner2.jpg';
 
 const milestones = [
   {

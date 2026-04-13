@@ -1,5 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { logoWhiteImage } from '@/assets';
+
 interface LoadingScreenProps {
   isLoading: boolean;
 }
@@ -57,7 +59,7 @@ export function LoadingScreen({ isLoading }: LoadingScreenProps) {
             }}
           >
             <img
-              src='/logo1-white.png'
+              src={logoWhiteImage}
               alt='Wealth Holding Premium Realty'
               className='h-8 w-auto object-contain'
             />

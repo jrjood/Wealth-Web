@@ -1,12 +1,9 @@
 import express from 'express';
-import { prisma } from '../lib/prisma.js';
 import { authMiddleware } from '../middleware/auth.js';
+import { query } from '../lib/db.js';
 
 const router = express.Router();
 
-// ---------------------------------------------------------------------------
-// Helper: generate a unique slug from a title
-// ---------------------------------------------------------------------------
 function slugify(text) {
   return text
     .toString()
@@ -19,17 +16,46 @@ function slugify(text) {
     .replace(/-+$/, '');
 }
 
+const toBoolean = (value) => value === 1 || value === true || value === '1';
+
+const parseTags = (value) => {
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  return [];
+};
+
+const mapPost = (post) => ({
+  ...post,
+  tags: parseTags(post.tags),
+  isFeatured: toBoolean(post.isFeatured),
+});
+
 async function uniqueSlug(title) {
   const base = slugify(title);
   let candidate = base;
   let suffix = 2;
 
-  while (await prisma.post.findUnique({ where: { slug: candidate } })) {
+  while (true) {
+    const rows = await query('SELECT id FROM `Post` WHERE slug = ? LIMIT 1', [
+      candidate,
+    ]);
+    if (rows.length === 0) {
+      return candidate;
+    }
     candidate = `${base}-${suffix}`;
     suffix += 1;
   }
-
-  return candidate;
 }
 
 async function uniqueSlugForUpdate(title, currentPostId) {
@@ -38,20 +64,48 @@ async function uniqueSlugForUpdate(title, currentPostId) {
   let suffix = 2;
 
   while (true) {
-    const existing = await prisma.post.findUnique({
-      where: { slug: candidate },
-    });
-    if (!existing || existing.id === currentPostId) {
+    const rows = await query('SELECT id FROM `Post` WHERE slug = ? LIMIT 1', [
+      candidate,
+    ]);
+
+    if (rows.length === 0 || rows[0].id === currentPostId) {
       return candidate;
     }
+
     candidate = `${base}-${suffix}`;
     suffix += 1;
   }
 }
 
-// ---------------------------------------------------------------------------
-// GET /api/posts — list with filters + pagination
-// ---------------------------------------------------------------------------
+function buildWhere({ search = '', category = '', tag = '', featured = '' }) {
+  const clauses = [];
+  const params = [];
+
+  if (search) {
+    clauses.push('(title LIKE ? OR excerpt LIKE ?)');
+    params.push(`%${search}%`, `%${search}%`);
+  }
+
+  if (category) {
+    clauses.push('category = ?');
+    params.push(category);
+  }
+
+  if (tag) {
+    clauses.push("JSON_CONTAINS(tags, JSON_QUOTE(?), '$')");
+    params.push(tag);
+  }
+
+  if (featured === 'true') {
+    clauses.push('isFeatured = 1');
+  }
+
+  return {
+    whereSql: clauses.length > 0 ? `WHERE ${clauses.join(' AND ')}` : '',
+    params,
+  };
+}
+
 router.get('/', async (req, res) => {
   try {
     const {
@@ -67,101 +121,74 @@ router.get('/', async (req, res) => {
     const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 9));
     const skip = (pageNum - 1) * limitNum;
 
-    const where = {};
+    const { whereSql, params } = buildWhere({
+      search,
+      category,
+      tag,
+      featured,
+    });
 
-    if (search) {
-      where.OR = [
-        { title: { contains: search } },
-        { excerpt: { contains: search } },
-      ];
-    }
-
-    if (category) {
-      where.category = category;
-    }
-
-    if (tag) {
-      // MySQL JSON contains — Prisma `path` filtering
-      where.tags = { path: '$', array_contains: tag };
-    }
-
-    if (featured === 'true') {
-      where.isFeatured = true;
-    }
-
-    const [posts, total] = await Promise.all([
-      prisma.post.findMany({
-        where,
-        orderBy: { publishedAt: 'desc' },
-        skip,
-        take: limitNum,
-      }),
-      prisma.post.count({ where }),
+    const [posts, totalRows] = await Promise.all([
+      query(
+        `SELECT id, title, slug, excerpt, content, coverImageUrl, tags, category, authorName, publishedAt, isFeatured, readingTime, createdAt, updatedAt FROM \`Post\` ${whereSql} ORDER BY publishedAt DESC LIMIT ? OFFSET ?`,
+        [...params, limitNum, skip],
+      ),
+      query(`SELECT COUNT(*) AS total FROM \`Post\` ${whereSql}`, params),
     ]);
 
+    const total = totalRows[0]?.total || 0;
+
     res.json({
-      posts,
+      posts: posts.map(mapPost),
       total,
       page: pageNum,
       totalPages: Math.ceil(total / limitNum),
     });
   } catch (error) {
     console.error('Error fetching posts:', error);
-    if (
-      error.code === 'P1001' ||
-      error.message?.includes("Can't reach database")
-    ) {
+    if (error.message?.includes('Database not configured')) {
       return res.json({ posts: [], total: 0, page: 1, totalPages: 0 });
     }
     res.status(500).json({ error: 'Failed to fetch posts' });
   }
 });
 
-// ---------------------------------------------------------------------------
-// GET /api/posts/admin/all — admin list (auth)
-// ---------------------------------------------------------------------------
 router.get('/admin/all', authMiddleware, async (_req, res) => {
   try {
-    const posts = await prisma.post.findMany({
-      orderBy: { publishedAt: 'desc' },
-    });
+    const posts = await query(
+      'SELECT id, title, slug, excerpt, content, coverImageUrl, tags, category, authorName, publishedAt, isFeatured, readingTime, createdAt, updatedAt FROM `Post` ORDER BY publishedAt DESC',
+    );
 
-    res.json(posts);
+    res.json(posts.map(mapPost));
   } catch (error) {
     console.error('Error fetching admin posts:', error);
     res.status(500).json({ error: 'Failed to fetch posts' });
   }
 });
 
-// ---------------------------------------------------------------------------
-// GET /api/posts/:slug — single post
-// ---------------------------------------------------------------------------
 router.get('/:slug', async (req, res) => {
   try {
-    const post = await prisma.post.findUnique({
-      where: { slug: req.params.slug },
-    });
+    const rows = await query(
+      'SELECT id, title, slug, excerpt, content, coverImageUrl, tags, category, authorName, publishedAt, isFeatured, readingTime, createdAt, updatedAt FROM \`Post\` WHERE slug = ? LIMIT 1',
+      [req.params.slug],
+    );
+
+    const post = rows[0];
 
     if (!post) {
       return res.status(404).json({ error: 'Post not found' });
     }
 
-    res.json(post);
+    res.json(mapPost(post));
   } catch (error) {
     console.error('Error fetching post:', error);
-    if (
-      error.code === 'P1001' ||
-      error.message?.includes("Can't reach database")
-    ) {
+    if (error.message?.includes('Database not configured')) {
       return res.status(404).json({ error: 'Post not found' });
     }
     res.status(500).json({ error: 'Failed to fetch post' });
   }
 });
 
-// ---------------------------------------------------------------------------
-// POST /api/posts — create (auth)
-// ---------------------------------------------------------------------------
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const {
@@ -176,7 +203,6 @@ router.post('/', authMiddleware, async (req, res) => {
       readingTime,
     } = req.body;
 
-    // Validation
     const errors = [];
     if (!title || typeof title !== 'string') errors.push('title');
     if (!excerpt || typeof excerpt !== 'string') errors.push('excerpt');
@@ -193,32 +219,41 @@ router.post('/', authMiddleware, async (req, res) => {
     }
 
     const slug = await uniqueSlug(title);
+    const tagValue = Array.isArray(tags)
+      ? JSON.stringify(tags)
+      : JSON.stringify([]);
 
-    const post = await prisma.post.create({
-      data: {
+    const id = `pst_${Date.now()}`;
+    await query(
+      'INSERT INTO `Post` (id, title, slug, excerpt, content, coverImageUrl, tags, category, authorName, publishedAt, isFeatured, readingTime) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [
+        id,
         title,
         slug,
         excerpt,
         content,
-        coverImageUrl: coverImageUrl || null,
-        tags: Array.isArray(tags) ? tags : [],
+        coverImageUrl || null,
+        tagValue,
         category,
         authorName,
-        isFeatured: Boolean(isFeatured),
-        readingTime: parseInt(readingTime, 10) || 5,
-      },
-    });
+        new Date(),
+        isFeatured ? 1 : 0,
+        parseInt(readingTime, 10) || 5,
+      ],
+    );
 
-    res.status(201).json(post);
+    const rows = await query(
+      'SELECT id, title, slug, excerpt, content, coverImageUrl, tags, category, authorName, publishedAt, isFeatured, readingTime, createdAt, updatedAt FROM \`Post\` WHERE id = ? LIMIT 1',
+      [id],
+    );
+
+    res.status(201).json(mapPost(rows[0]));
   } catch (error) {
     console.error('Error creating post:', error);
     res.status(500).json({ error: 'Failed to create post' });
   }
 });
 
-// ---------------------------------------------------------------------------
-// PUT /api/posts/:id — update (auth)
-// ---------------------------------------------------------------------------
 router.put('/:id', authMiddleware, async (req, res) => {
   try {
     const {
@@ -234,9 +269,12 @@ router.put('/:id', authMiddleware, async (req, res) => {
       publishedAt,
     } = req.body;
 
-    const existing = await prisma.post.findUnique({
-      where: { id: req.params.id },
-    });
+    const existingRows = await query(
+      'SELECT id, title, excerpt, content, coverImageUrl, tags, category, authorName, publishedAt, isFeatured, readingTime FROM \`Post\` WHERE id = ? LIMIT 1',
+      [req.params.id],
+    );
+
+    const existing = existingRows[0];
     if (!existing) {
       return res.status(404).json({ error: 'Post not found' });
     }
@@ -244,44 +282,57 @@ router.put('/:id', authMiddleware, async (req, res) => {
     const nextTitle = typeof title === 'string' ? title : existing.title;
     const nextSlug = await uniqueSlugForUpdate(nextTitle, existing.id);
 
-    const updated = await prisma.post.update({
-      where: { id: req.params.id },
-      data: {
-        title: nextTitle,
-        slug: nextSlug,
-        excerpt: typeof excerpt === 'string' ? excerpt : existing.excerpt,
-        content: typeof content === 'string' ? content : existing.content,
-        coverImageUrl: coverImageUrl || null,
-        tags: Array.isArray(tags) ? tags : existing.tags,
-        category: typeof category === 'string' ? category : existing.category,
-        authorName:
-          typeof authorName === 'string' ? authorName : existing.authorName,
-        isFeatured:
-          typeof isFeatured === 'boolean' ? isFeatured : existing.isFeatured,
-        readingTime: parseInt(readingTime, 10) || existing.readingTime,
-        publishedAt: publishedAt ? new Date(publishedAt) : existing.publishedAt,
-      },
-    });
+    await query(
+      'UPDATE \`Post\` SET title = ?, slug = ?, excerpt = ?, content = ?, coverImageUrl = ?, tags = ?, category = ?, authorName = ?, isFeatured = ?, readingTime = ?, publishedAt = ? WHERE id = ?',
+      [
+        nextTitle,
+        nextSlug,
+        typeof excerpt === 'string' ? excerpt : existing.excerpt,
+        typeof content === 'string' ? content : existing.content,
+        coverImageUrl || null,
+        Array.isArray(tags)
+          ? JSON.stringify(tags)
+          : typeof existing.tags === 'string'
+            ? existing.tags
+            : JSON.stringify(existing.tags || []),
+        typeof category === 'string' ? category : existing.category,
+        typeof authorName === 'string' ? authorName : existing.authorName,
+        typeof isFeatured === 'boolean'
+          ? isFeatured
+            ? 1
+            : 0
+          : existing.isFeatured,
+        parseInt(readingTime, 10) || existing.readingTime,
+        publishedAt ? new Date(publishedAt) : existing.publishedAt,
+        req.params.id,
+      ],
+    );
 
-    res.json(updated);
+    const rows = await query(
+      'SELECT id, title, slug, excerpt, content, coverImageUrl, tags, category, authorName, publishedAt, isFeatured, readingTime, createdAt, updatedAt FROM \`Post\` WHERE id = ? LIMIT 1',
+      [req.params.id],
+    );
+
+    res.json(mapPost(rows[0]));
   } catch (error) {
     console.error('Error updating post:', error);
     res.status(500).json({ error: 'Failed to update post' });
   }
 });
 
-// ---------------------------------------------------------------------------
-// DELETE /api/posts/:id — delete (auth)
-// ---------------------------------------------------------------------------
 router.delete('/:id', authMiddleware, async (req, res) => {
   try {
-    await prisma.post.delete({ where: { id: req.params.id } });
+    const result = await query('DELETE FROM \`Post\` WHERE id = ?', [
+      req.params.id,
+    ]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
     res.json({ message: 'Post deleted successfully' });
   } catch (error) {
     console.error('Error deleting post:', error);
-    if (error.code === 'P2025') {
-      return res.status(404).json({ error: 'Post not found' });
-    }
     res.status(500).json({ error: 'Failed to delete post' });
   }
 });

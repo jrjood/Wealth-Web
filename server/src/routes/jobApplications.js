@@ -3,7 +3,7 @@ import multer from 'multer';
 import nodemailer from 'nodemailer';
 import fs from 'fs';
 import path from 'path';
-import { prisma } from '../lib/prisma.js';
+import { query } from '../lib/db.js';
 import { authMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -124,6 +124,44 @@ const parseStatus = (value) => {
   return value;
 };
 
+const toBoolean = (value) => value === 1 || value === true || value === '1';
+
+const mapJob = (job) =>
+  job
+    ? {
+        id: job.jobId,
+        title: job.jobTitle,
+        department: job.jobDepartment,
+        location: job.jobLocation,
+        type: job.jobType,
+        description: job.jobDescription,
+        published: toBoolean(job.jobPublished),
+        createdAt: job.jobCreatedAt,
+        updatedAt: job.jobUpdatedAt,
+      }
+    : null;
+
+const mapApplication = (application) => ({
+  id: application.id,
+  jobId: application.jobId,
+  jobTitle: application.jobTitle,
+  jobDepartment: application.jobDepartment,
+  jobLocation: application.jobLocation,
+  jobType: application.jobType,
+  name: application.name,
+  email: application.email,
+  phone: application.phone,
+  message: application.message,
+  cvStoredName: application.cvStoredName,
+  cvOriginalName: application.cvOriginalName,
+  cvMimeType: application.cvMimeType,
+  cvSize: application.cvSize,
+  status: application.status,
+  createdAt: application.createdAt,
+  updatedAt: application.updatedAt,
+  job: mapJob(application.job),
+});
+
 router.post('/', (req, res) => {
   upload.single('cv')(req, res, async (error) => {
     if (error) {
@@ -170,33 +208,80 @@ router.post('/', (req, res) => {
         return res.status(400).json({ error: 'CV file is required' });
       }
 
-      const job =
+      const jobRows =
         normalizedJobId && normalizedJobId !== 'general'
-          ? await prisma.job.findUnique({ where: { id: normalizedJobId } })
-          : null;
+          ? await query(
+              'SELECT id, title, department, location, type, description, published, createdAt, updatedAt FROM `Job` WHERE id = ? LIMIT 1',
+              [normalizedJobId],
+            )
+          : [];
+      const job = jobRows[0] || null;
 
       if (normalizedJobId && normalizedJobId !== 'general' && !job) {
         return res.status(404).json({ error: 'Selected job not found' });
       }
 
-      const application = await prisma.jobApplication.create({
-        data: {
-          cvMimeType: req.file.mimetype,
-          cvOriginalName: req.file.originalname,
-          cvSize: req.file.size,
-          cvStoredName: req.file.filename,
-          email: normalizedEmail,
-          jobDepartment: job?.department || null,
-          jobId: job?.id || null,
-          jobLocation: job?.location || null,
-          jobTitle: job?.title || normalizedJobTitle || 'General Application',
-          jobType: job?.type || null,
-          message: normalizedMessage || null,
-          name: normalizedName,
-          phone: normalizedPhone,
-          status: 'new',
-        },
-      });
+      const applicationId = `app_${Date.now()}`;
+      const jobTitleValue =
+        job?.title || normalizedJobTitle || 'General Application';
+
+      await query(
+        'INSERT INTO `JobApplication` (id, jobId, jobTitle, jobDepartment, jobLocation, jobType, name, email, phone, message, cvStoredName, cvOriginalName, cvMimeType, cvSize, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          applicationId,
+          job?.id || null,
+          jobTitleValue,
+          job?.department || null,
+          job?.location || null,
+          job?.type || null,
+          normalizedName,
+          normalizedEmail,
+          normalizedPhone,
+          normalizedMessage || null,
+          req.file.filename,
+          req.file.originalname,
+          req.file.mimetype,
+          req.file.size,
+          'new',
+        ],
+      );
+
+      const applicationRows = await query(
+        `SELECT
+          ja.id,
+          ja.jobId,
+          ja.jobTitle,
+          ja.jobDepartment,
+          ja.jobLocation,
+          ja.jobType,
+          ja.name,
+          ja.email,
+          ja.phone,
+          ja.message,
+          ja.cvStoredName,
+          ja.cvOriginalName,
+          ja.cvMimeType,
+          ja.cvSize,
+          ja.status,
+          ja.createdAt,
+          ja.updatedAt,
+          j.id AS job_jobId,
+          j.title AS job_jobTitle,
+          j.department AS job_jobDepartment,
+          j.location AS job_jobLocation,
+          j.type AS job_jobType,
+          j.description AS job_jobDescription,
+          j.published AS job_jobPublished,
+          j.createdAt AS job_jobCreatedAt,
+          j.updatedAt AS job_jobUpdatedAt
+        FROM \`JobApplication\` ja
+        LEFT JOIN \`Job\` j ON j.id = ja.jobId
+        WHERE ja.id = ?
+        LIMIT 1`,
+        [applicationId],
+      );
+
+      const application = mapApplication(applicationRows[0]);
 
       let emailSent = false;
       let emailError = null;
@@ -242,12 +327,40 @@ router.use(authMiddleware);
 
 router.get('/admin/all', async (_req, res) => {
   try {
-    const applications = await prisma.jobApplication.findMany({
-      include: { job: true },
-      orderBy: { createdAt: 'desc' },
-    });
+    const applications = await query(
+      `SELECT
+        ja.id,
+        ja.jobId,
+        ja.jobTitle,
+        ja.jobDepartment,
+        ja.jobLocation,
+        ja.jobType,
+        ja.name,
+        ja.email,
+        ja.phone,
+        ja.message,
+        ja.cvStoredName,
+        ja.cvOriginalName,
+        ja.cvMimeType,
+        ja.cvSize,
+        ja.status,
+        ja.createdAt,
+        ja.updatedAt,
+        j.id AS job_jobId,
+        j.title AS job_jobTitle,
+        j.department AS job_jobDepartment,
+        j.location AS job_jobLocation,
+        j.type AS job_jobType,
+        j.description AS job_jobDescription,
+        j.published AS job_jobPublished,
+        j.createdAt AS job_jobCreatedAt,
+        j.updatedAt AS job_jobUpdatedAt
+      FROM \`JobApplication\` ja
+      LEFT JOIN \`Job\` j ON j.id = ja.jobId
+      ORDER BY ja.createdAt DESC`,
+    );
 
-    res.json(applications);
+    res.json(applications.map(mapApplication));
   } catch (error) {
     console.error('Error fetching job applications:', error);
     res.status(500).json({ error: 'Failed to fetch job applications' });
@@ -262,19 +375,60 @@ router.patch('/:id', async (req, res) => {
       return res.status(400).json({ error: 'Invalid application status' });
     }
 
-    const application = await prisma.jobApplication.update({
-      where: { id: req.params.id },
-      data: { status },
-      include: { job: true },
-    });
+    const existingRows = await query(
+      'SELECT id FROM `JobApplication` WHERE id = ? LIMIT 1',
+      [req.params.id],
+    );
+
+    if (existingRows.length === 0) {
+      return res.status(404).json({ error: 'Job application not found' });
+    }
+
+    await query('UPDATE `JobApplication` SET status = ? WHERE id = ?', [
+      status,
+      req.params.id,
+    ]);
+
+    const applicationRows = await query(
+      `SELECT
+        ja.id,
+        ja.jobId,
+        ja.jobTitle,
+        ja.jobDepartment,
+        ja.jobLocation,
+        ja.jobType,
+        ja.name,
+        ja.email,
+        ja.phone,
+        ja.message,
+        ja.cvStoredName,
+        ja.cvOriginalName,
+        ja.cvMimeType,
+        ja.cvSize,
+        ja.status,
+        ja.createdAt,
+        ja.updatedAt,
+        j.id AS job_jobId,
+        j.title AS job_jobTitle,
+        j.department AS job_jobDepartment,
+        j.location AS job_jobLocation,
+        j.type AS job_jobType,
+        j.description AS job_jobDescription,
+        j.published AS job_jobPublished,
+        j.createdAt AS job_jobCreatedAt,
+        j.updatedAt AS job_jobUpdatedAt
+      FROM \`JobApplication\` ja
+      LEFT JOIN \`Job\` j ON j.id = ja.jobId
+      WHERE ja.id = ?
+      LIMIT 1`,
+      [req.params.id],
+    );
+
+    const application = mapApplication(applicationRows[0]);
 
     res.json(application);
   } catch (error) {
     console.error('Error updating job application:', error);
-
-    if (error.code === 'P2025') {
-      return res.status(404).json({ error: 'Job application not found' });
-    }
 
     res.status(500).json({ error: 'Failed to update job application' });
   }
@@ -282,9 +436,12 @@ router.patch('/:id', async (req, res) => {
 
 router.get('/:id/cv', async (req, res) => {
   try {
-    const application = await prisma.jobApplication.findUnique({
-      where: { id: req.params.id },
-    });
+    const rows = await query(
+      'SELECT cvStoredName, cvOriginalName FROM `JobApplication` WHERE id = ? LIMIT 1',
+      [req.params.id],
+    );
+
+    const application = rows[0];
 
     if (!application) {
       return res.status(404).json({ error: 'Job application not found' });

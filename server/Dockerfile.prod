@@ -6,14 +6,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install ALL dependencies (including production)
+# Install production dependencies only
 RUN npm install --production
-
-# Copy prisma schema
-COPY prisma ./prisma
-
-# Generate Prisma Client
-RUN npx prisma generate
 
 # Copy source code
 COPY . .
@@ -26,7 +20,6 @@ WORKDIR /app
 # Copy from builder
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/src ./src
 
 EXPOSE 3001
@@ -36,4 +29,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3001/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 # Start script with proper wait and error handling
-CMD ["sh", "-c", "sleep 5 && npx prisma db push && node prisma/seed.js || true && node src/index.js"]
+CMD ["sh", "-c", "sleep 5 && node src/index.js"]

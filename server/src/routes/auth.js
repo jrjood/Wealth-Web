@@ -1,7 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { prisma } from '../lib/prisma.js';
+import { query } from '../lib/db.js';
 
 const router = express.Router();
 
@@ -14,9 +14,12 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password required' });
     }
 
-    const admin = await prisma.admin.findUnique({
-      where: { email },
-    });
+    const rows = await query(
+      'SELECT id, email, password, name FROM `Admin` WHERE email = ? LIMIT 1',
+      [email],
+    );
+
+    const admin = rows[0];
 
     if (!admin) {
       return res.status(401).json({ error: 'Invalid credentials' });

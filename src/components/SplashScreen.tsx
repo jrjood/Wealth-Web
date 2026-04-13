@@ -1,6 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 
+import { logoWhiteImage } from '@/assets';
+
 export function SplashScreen() {
   const [isVisible, setIsVisible] = useState(true);
 
@@ -60,7 +62,7 @@ export function SplashScreen() {
             }}
           >
             <img
-              src='/logo1-white.png'
+              src={logoWhiteImage}
               alt='Wealth Holding Premium Realty'
               className='h-8 w-auto object-contain'
             />

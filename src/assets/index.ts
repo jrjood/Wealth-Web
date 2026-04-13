@@ -1,8 +1,10 @@
-import aboutOneImage from './images/BG1.png';
-import aboutTwoImage from './images/BG2.png';
+import aboutOneImage from './images/BG1.jpg';
+import aboutTwoImage from './images/BG2.jpg';
 import backgroundDarkImage from './images/background-dark.avif';
 import brandGuidelinesImage from './images/brand-guidelines.jpg';
 import emblemImage from './images/emblem.png';
+import logoBlackImage from './images/logo1-black.png';
+import logoWhiteImage from './images/logo1-white.png';
 import officeBuildingImage from './images/office-building.webp';
 import stampImage from './images/stamp.png';
 import textHeroImage from './images/text-hero-bg.png';
@@ -23,6 +25,8 @@ export {
   backgroundDarkImage,
   brandGuidelinesImage,
   emblemImage,
+  logoBlackImage,
+  logoWhiteImage,
   officeBuildingImage,
   partnerLogo1,
   partnerLogo2,
