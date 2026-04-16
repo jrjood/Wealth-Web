@@ -246,7 +246,7 @@ const ProjectDetail = () => {
                     href='tel:+9714123456'
                     className='text-lg font-semibold text-foreground hover:text-primary transition-colors'
                   >
-                    +971 4 123 4567
+                    19640
                   </a>
                 </div>
               </motion.div>

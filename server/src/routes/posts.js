@@ -130,8 +130,8 @@ router.get('/', async (req, res) => {
 
     const [posts, totalRows] = await Promise.all([
       query(
-        `SELECT id, title, slug, excerpt, content, coverImageUrl, tags, category, authorName, publishedAt, isFeatured, readingTime, createdAt, updatedAt FROM \`Post\` ${whereSql} ORDER BY publishedAt DESC LIMIT ? OFFSET ?`,
-        [...params, limitNum, skip],
+        `SELECT id, title, slug, excerpt, content, coverImageUrl, tags, category, authorName, publishedAt, isFeatured, readingTime, createdAt, updatedAt FROM \`Post\` ${whereSql} ORDER BY publishedAt DESC LIMIT ${limitNum} OFFSET ${skip}`,
+        params,
       ),
       query(`SELECT COUNT(*) AS total FROM \`Post\` ${whereSql}`, params),
     ]);

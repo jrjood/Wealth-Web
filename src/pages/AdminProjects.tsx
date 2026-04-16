@@ -36,14 +36,16 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 interface Project {
   id: string;
-  name: string;
+  title: string;
   location: string;
   type: string;
   status: string;
   description: string;
-  image?: string;
-  slug: string;
+  details?: string | null;
+  imageUrl?: string | null;
   featured: boolean;
+  amenities?: string | null;
+  specifications?: string | null;
 }
 
 export default function AdminProjects() {
@@ -55,13 +57,15 @@ export default function AdminProjects() {
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
-    name: '',
+    title: '',
     location: '',
     type: 'Residential',
     status: 'Under Construction',
     description: '',
-    image: '',
-    slug: '',
+    details: '',
+    imageUrl: '',
+    amenities: '',
+    specifications: '',
     featured: false,
   });
 
@@ -78,7 +82,14 @@ export default function AdminProjects() {
     try {
       const response = await fetch(`${API_URL}/api/projects`);
       const data = await response.json();
-      setProjects(data);
+      const normalized = Array.isArray(data)
+        ? data.map((project) => ({
+            ...project,
+            title: project.title ?? project.name ?? '',
+            imageUrl: project.imageUrl ?? project.image ?? null,
+          }))
+        : [];
+      setProjects(normalized);
     } catch (error) {
       toast({
         title: 'Error',
@@ -99,13 +110,26 @@ export default function AdminProjects() {
         ? `${API_URL}/api/projects/${editingProject.id}`
         : `${API_URL}/api/projects`;
 
+      const payload = {
+        title: formData.title.trim(),
+        location: formData.location.trim(),
+        type: formData.type,
+        status: formData.status,
+        description: formData.description.trim(),
+        details: formData.details.trim() || null,
+        imageUrl: formData.imageUrl.trim() || null,
+        featured: formData.featured,
+        amenities: formData.amenities.trim() || null,
+        specifications: formData.specifications.trim() || null,
+      };
+
       const response = await fetch(url, {
         method: editingProject ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -162,13 +186,15 @@ export default function AdminProjects() {
   const handleEdit = (project: Project) => {
     setEditingProject(project);
     setFormData({
-      name: project.name,
+      title: project.title,
       location: project.location,
       type: project.type,
       status: project.status,
       description: project.description,
-      image: project.image || '',
-      slug: project.slug,
+      details: project.details || '',
+      imageUrl: project.imageUrl || '',
+      amenities: project.amenities || '',
+      specifications: project.specifications || '',
       featured: project.featured,
     });
     setDialogOpen(true);
@@ -176,13 +202,15 @@ export default function AdminProjects() {
 
   const resetForm = () => {
     setFormData({
-      name: '',
+      title: '',
       location: '',
       type: 'Residential',
       status: 'Under Construction',
       description: '',
-      image: '',
-      slug: '',
+      details: '',
+      imageUrl: '',
+      amenities: '',
+      specifications: '',
       featured: false,
     });
     setEditingProject(null);
@@ -233,25 +261,10 @@ export default function AdminProjects() {
                   <Label htmlFor='name'>Project Name</Label>
                   <Input
                     id='name'
-                    value={formData.name}
+                    value={formData.title}
                     onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
+                      setFormData({ ...formData, title: e.target.value })
                     }
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor='slug'>Slug (URL friendly name)</Label>
-                  <Input
-                    id='slug'
-                    value={formData.slug}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        slug: e.target.value.toLowerCase().replace(/\s+/g, '-'),
-                      })
-                    }
-                    placeholder='marina-bay-residences'
                     required
                   />
                 </div>
@@ -315,12 +328,50 @@ export default function AdminProjects() {
                   <Input
                     id='image'
                     type='url'
-                    value={formData.image}
+                    value={formData.imageUrl}
                     onChange={(e) =>
-                      setFormData({ ...formData, image: e.target.value })
+                      setFormData({ ...formData, imageUrl: e.target.value })
                     }
                     placeholder='https://example.com/image.jpg'
                   />
+                </div>
+                <div>
+                  <Label htmlFor='details'>Details (optional)</Label>
+                  <Textarea
+                    id='details'
+                    value={formData.details}
+                    onChange={(e) =>
+                      setFormData({ ...formData, details: e.target.value })
+                    }
+                    rows={3}
+                  />
+                </div>
+                <div className='grid grid-cols-2 gap-4'>
+                  <div>
+                    <Label htmlFor='amenities'>Amenities (optional)</Label>
+                    <Input
+                      id='amenities'
+                      value={formData.amenities}
+                      onChange={(e) =>
+                        setFormData({ ...formData, amenities: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor='specifications'>
+                      Specifications (optional)
+                    </Label>
+                    <Input
+                      id='specifications'
+                      value={formData.specifications}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          specifications: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
                 </div>
                 <div>
                   <Label htmlFor='description'>Description</Label>
@@ -377,7 +428,7 @@ export default function AdminProjects() {
                   <CardHeader>
                     <div className='flex justify-between items-start'>
                       <div>
-                        <CardTitle>{project.name}</CardTitle>
+                        <CardTitle>{project.title}</CardTitle>
                         <CardDescription>
                           {project.location} • {project.type} • {project.status}
                           {project.featured && (

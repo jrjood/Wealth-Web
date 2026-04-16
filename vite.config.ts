@@ -26,45 +26,4 @@ export default defineConfig(({ mode }) => ({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (!id.includes('node_modules')) {
-            return;
-          }
-
-          if (
-            id.includes('react') ||
-            id.includes('react-dom') ||
-            id.includes('scheduler')
-          ) {
-            return 'vendor-react';
-          }
-
-          if (id.includes('react-router-dom') || id.includes('@remix-run')) {
-            return 'vendor-router';
-          }
-
-          if (
-            id.includes('framer-motion') ||
-            id.includes('/motion/') ||
-            id.includes('gsap') ||
-            id.includes('lenis') ||
-            id.includes('ogl') ||
-            id.includes('three') ||
-            id.includes('lightswind')
-          ) {
-            return 'vendor-animation';
-          }
-
-          if (id.includes('@radix-ui') || id.includes('lucide-react')) {
-            return 'vendor-ui';
-          }
-
-          return 'vendor-misc';
-        },
-      },
-    },
-  },
 }));
