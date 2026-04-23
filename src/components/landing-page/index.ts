@@ -1,0 +1,33 @@
+export { default as HeroSection } from './HeroSection';
+export { default as FutureSection } from './FutureSection';
+export { default as FeaturedProjectsSection } from './FeaturedProjectsSection';
+export { default as FeaturedInSection } from './FeaturedInSection';
+export { default as EarlyAdopterSection } from './EarlyAdopterSection';
+export { default as BlogSection } from './BlogSection';
+export { default as AboutSection } from './AboutSection';
+export { default as SloganSection } from './SloganSection';
+export { default as ServicesSection } from './ServicesSection';
+export { default as RoadmapSection } from './RoadmapSection';
+export { default as ParaEffect } from './ParaEffect';
+export { default as ValuesSection } from './ValuesSection';
+export { default as SocialLinksSection } from './SocialLinksSection';
+export { default as VideoShowcaseSection } from './VideoShowcaseSection';
+export { default as WhatIsWealthSection } from './WhatIsWealthSection';
+
+export { default as LandingHero } from './HeroSection';
+export { default as WealthIntroSection } from './WhatIsWealthSection';
+export { default as ServicesGrid } from './ServicesSection';
+export { default as StatsSection } from './FutureSection';
+export { default as PhotoFeature } from './FeaturedInSection';
+export { default as Testimonials } from './SocialLinksSection';
+export { default as VideoPreview } from './VideoShowcaseSection';
+export { default as FinalCTA } from './EarlyAdopterSection';
+export { default as ScrollText } from './ParaEffect';
+export { default as BlogBentoSection } from './BlogSection';
+
+export { default as LogoStrip } from './FeaturedInSection';
+export { default as LeftHeadline } from './AboutSection';
+export { default as CenterStatement } from './SloganSection';
+export { default as LandingNav } from './RoadmapSection';
+export { default as Reveal } from './ValuesSection';
+export { default as HeroV2 } from './HeroSection';

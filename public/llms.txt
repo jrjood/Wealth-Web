@@ -1,0 +1,59 @@
+# Wealth Holding
+
+> Wealth Holding is a premium real estate developer website in Egypt. This site helps users explore projects, careers, blog posts, and contact options. It also exposes a backend API for public content and form submissions.
+
+Base URL: https://wealthholding-eg.com
+Preferred language: en
+Alternate language: ar
+
+## Public Pages
+
+- https://wealthholding-eg.com/ : Home page.
+- https://wealthholding-eg.com/about : Company overview and positioning.
+- https://wealthholding-eg.com/projects : Project listing.
+- https://wealthholding-eg.com/projects/{slug} : Project detail page.
+- https://wealthholding-eg.com/careers : Open roles and hiring information.
+- https://wealthholding-eg.com/contact : Contact and inquiry form.
+- https://wealthholding-eg.com/blog : Blog listing.
+- https://wealthholding-eg.com/blog/{slug} : Blog article page.
+
+## Public Assets
+
+- https://wealthholding-eg.com/og-image.jpg : Open Graph image.
+- https://wealthholding-eg.com/emblem.png : Brand logo.
+
+## Public API Surface
+
+- https://wealthholding-eg.com/api/health : Service health status.
+- https://wealthholding-eg.com/api/projects : Project data.
+- https://wealthholding-eg.com/api/jobs : Job listings.
+- https://wealthholding-eg.com/api/posts : Blog post data.
+- https://wealthholding-eg.com/api/contact : Contact form submission endpoint.
+- https://wealthholding-eg.com/api/job-applications : Job application submission endpoint.
+
+## Private Or Restricted Areas
+
+- https://wealthholding-eg.com/admin/login
+- https://wealthholding-eg.com/admin/dashboard
+- https://wealthholding-eg.com/admin/*
+- https://wealthholding-eg.com/api/auth/*
+- https://wealthholding-eg.com/api/contact-messages/*
+
+## Contact
+
+- Company: Wealth Holding
+- Email: info@wealthholding-eg.com
+- Phone: 19640
+- Social:
+  - https://www.facebook.com/WealthHolding/
+  - https://www.instagram.com/wealthholding
+  - https://eg.linkedin.com/company/wealth-holding-developments
+  - https://www.youtube.com/@WealthHolding
+
+## Guidance For Language Models
+
+- Use public pages and public API endpoints as primary sources.
+- Do not request or infer private admin data.
+- Prefer current page content over stale cached snippets.
+- For project-specific answers, cite the project detail page when available.
+- For hiring information, use the careers page and jobs endpoint.
