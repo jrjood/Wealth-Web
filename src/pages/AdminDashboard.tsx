@@ -47,8 +47,14 @@ type RecentProjectInquiry = {
   createdAt: string;
 };
 
+type AdminUser = {
+  id: string;
+  email: string;
+  name: string;
+};
+
 export default function AdminDashboard() {
-  const [admin, setAdmin] = useState<any>(null);
+  const [admin, setAdmin] = useState<AdminUser | null>(null);
   const [recentApplications, setRecentApplications] = useState<
     RecentApplication[]
   >([]);

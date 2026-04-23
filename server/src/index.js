@@ -94,16 +94,73 @@ const ensureContactMessagesTable = async () => {
   });
 };
 
-const ensureProjectDetailSchema = async () => {
+const columnExists = async (tableName, columnName) => {
+  const rows = await query(
+    `SELECT 1
+     FROM INFORMATION_SCHEMA.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE()
+       AND TABLE_NAME = ?
+       AND COLUMN_NAME = ?
+     LIMIT 1`,
+    [tableName, columnName],
+  );
+
+  return rows.length > 0;
+};
+
+const addColumnIfMissing = async (tableName, columnName, definition) => {
+  if (await columnExists(tableName, columnName)) {
+    return;
+  }
+
   await query(`
-    ALTER TABLE \`Project\`
-      ADD COLUMN IF NOT EXISTS \`masterPlanImage\` VARCHAR(191) NULL AFTER \`imageUrl\`,
-      ADD COLUMN IF NOT EXISTS \`projectLogoUrl\` VARCHAR(191) NULL AFTER \`imageUrl\`,
-      ADD COLUMN IF NOT EXISTS \`videoUrl\` VARCHAR(191) NULL AFTER \`masterPlanImage\`,
-      ADD COLUMN IF NOT EXISTS \`locationImage\` VARCHAR(191) NULL AFTER \`videoUrl\`,
-      ADD COLUMN IF NOT EXISTS \`locationMapUrl\` VARCHAR(512) NULL AFTER \`locationImage\`,
-      ADD COLUMN IF NOT EXISTS \`brochureUrl\` VARCHAR(191) NULL AFTER \`locationMapUrl\`
+    ALTER TABLE \`${tableName}\`
+      ADD COLUMN \`${columnName}\` ${definition}
   `);
+};
+
+const dropColumnIfExists = async (tableName, columnName) => {
+  if (!(await columnExists(tableName, columnName))) {
+    return;
+  }
+
+  await query(`
+    ALTER TABLE \`${tableName}\`
+      DROP COLUMN \`${columnName}\`
+  `);
+};
+
+const ensureProjectDetailSchema = async () => {
+  await addColumnIfMissing(
+    'Project',
+    'masterPlanImage',
+    'VARCHAR(191) NULL AFTER `imageUrl`',
+  );
+  await addColumnIfMissing(
+    'Project',
+    'projectLogoUrl',
+    'VARCHAR(191) NULL AFTER `imageUrl`',
+  );
+  await addColumnIfMissing(
+    'Project',
+    'videoUrl',
+    'VARCHAR(191) NULL AFTER `masterPlanImage`',
+  );
+  await addColumnIfMissing(
+    'Project',
+    'locationImage',
+    'VARCHAR(191) NULL AFTER `videoUrl`',
+  );
+  await addColumnIfMissing(
+    'Project',
+    'locationMapUrl',
+    'VARCHAR(512) NULL AFTER `locationImage`',
+  );
+  await addColumnIfMissing(
+    'Project',
+    'brochureUrl',
+    'VARCHAR(191) NULL AFTER `locationMapUrl`',
+  );
 
   await query(`
     CREATE TABLE IF NOT EXISTS \`GalleryImage\` (
@@ -137,10 +194,11 @@ const ensureProjectDetailSchema = async () => {
     ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
   `);
 
-  await query(`
-    ALTER TABLE \`GalleryImage\`
-      ADD COLUMN IF NOT EXISTS \`title\` VARCHAR(191) NULL AFTER \`imageUrl\`
-  `);
+  await addColumnIfMissing(
+    'GalleryImage',
+    'title',
+    'VARCHAR(191) NULL AFTER `imageUrl`',
+  );
 
   await query(`
     CREATE TABLE IF NOT EXISTS \`PaymentPlan\` (
@@ -157,11 +215,16 @@ const ensureProjectDetailSchema = async () => {
     ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
   `);
 
-  await query(`
-    ALTER TABLE \`PaymentPlan\`
-      ADD COLUMN IF NOT EXISTS \`installments\` VARCHAR(191) NULL AFTER \`downPayment\`,
-      ADD COLUMN IF NOT EXISTS \`startingPrice\` VARCHAR(191) NULL AFTER \`installments\`
-  `);
+  await addColumnIfMissing(
+    'PaymentPlan',
+    'installments',
+    'VARCHAR(191) NULL AFTER `downPayment`',
+  );
+  await addColumnIfMissing(
+    'PaymentPlan',
+    'startingPrice',
+    'VARCHAR(191) NULL AFTER `installments`',
+  );
 
   await query(`
     UPDATE \`PaymentPlan\`
@@ -176,11 +239,8 @@ const ensureProjectDetailSchema = async () => {
       MODIFY COLUMN \`startingPrice\` VARCHAR(191) NOT NULL
   `);
 
-  await query(`
-    ALTER TABLE \`PaymentPlan\`
-      DROP COLUMN IF EXISTS \`installmentYears\`,
-      DROP COLUMN IF EXISTS \`installmentDetails\`
-  `).catch(() => {});
+  await dropColumnIfExists('PaymentPlan', 'installmentYears').catch(() => {});
+  await dropColumnIfExists('PaymentPlan', 'installmentDetails').catch(() => {});
 
   await query(`
     ALTER TABLE \`GalleryImage\`

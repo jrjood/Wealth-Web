@@ -21,6 +21,17 @@ type BlogPost = {
   title: string;
 };
 
+type ApiPost = {
+  category?: string;
+  coverImageUrl?: string | null;
+  excerpt?: string;
+  id?: number | string;
+  publishedAt?: string;
+  readingTime?: number;
+  slug?: string;
+  title?: string;
+};
+
 const BlogSection = () => {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -30,19 +41,19 @@ const BlogSection = () => {
   useEffect(() => {
     let cancelled = false;
 
-    const mapPost = (post: any, index: number): BlogPost => ({
-      category: post.category,
-      date: new Date(post.publishedAt).toLocaleDateString('en-US', {
+    const mapPost = (post: ApiPost, index: number): BlogPost => ({
+      category: post.category ?? 'Updates',
+      date: new Date(post.publishedAt ?? Date.now()).toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
         year: 'numeric',
       }),
-      excerpt: post.excerpt,
-      href: `/blog/${post.slug}`,
+      excerpt: post.excerpt ?? '',
+      href: `/blog/${post.slug ?? ''}`,
       id: Number(post.id) || index + 1,
-      image: resolveMediaUrl(post.coverImageUrl, API_URL) || '',
-      readingTime: post.readingTime,
-      title: post.title,
+      image: resolveMediaUrl(post.coverImageUrl ?? null, API_URL) || '',
+      readingTime: post.readingTime ?? 0,
+      title: post.title ?? 'Untitled post',
     });
 
     const fetchFeaturedPosts = async () => {
@@ -66,7 +77,7 @@ const BlogSection = () => {
           : [];
 
         const combined = [...featuredPosts];
-        const seen = new Set(combined.map((post: any) => post.id));
+        const seen = new Set(combined.map((post: ApiPost) => post.id));
 
         for (const post of latestPosts) {
           if (combined.length >= 5) {

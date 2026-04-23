@@ -1,6 +1,8 @@
-import { type FormEvent, useEffect, useMemo, useState } from 'react';
+import { type FormEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, type Variants } from 'framer-motion';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
   ArrowLeft,
   Building2,
@@ -25,6 +27,8 @@ import { ProjectGallery } from '@/components/projects/ProjectGallery';
 import { ProjectLocationSection } from '@/components/projects/ProjectLocationSection';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const revealViewport = { once: true, amount: 0.18 };
 
@@ -123,6 +127,9 @@ interface Project {
 
 const ProjectDetail = () => {
   const { slug } = useParams<{ slug: string }>();
+  const detailsSectionRef = useRef<HTMLElement | null>(null);
+  const detailsContentRef = useRef<HTMLDivElement | null>(null);
+  const leadFormPinRef = useRef<HTMLDivElement | null>(null);
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -221,6 +228,75 @@ const ProjectDetail = () => {
     () => resolveMediaUrl(project?.brochureUrl, API_URL),
     [project],
   );
+
+  useLayoutEffect(() => {
+    if (
+      !project ||
+      !detailsSectionRef.current ||
+      !detailsContentRef.current ||
+      !leadFormPinRef.current
+    ) {
+      return;
+    }
+
+    const section = detailsSectionRef.current;
+    const content = detailsContentRef.current;
+    const leadForm = leadFormPinRef.current;
+    const media = window.matchMedia('(min-width: 1024px)');
+
+    const context = gsap.context(() => {
+      ScrollTrigger.matchMedia({
+        '(min-width: 1024px)': () => {
+          const trigger = ScrollTrigger.create({
+            trigger: section,
+            start: 'top top+=112',
+            endTrigger: content,
+            end: 'bottom bottom-=32',
+            pin: leadForm,
+            pinSpacing: false,
+            invalidateOnRefresh: true,
+          });
+
+          return () => {
+            trigger.kill();
+          };
+        },
+      });
+    }, section);
+
+    const refresh = () => {
+      ScrollTrigger.refresh();
+    };
+
+    const refreshAfterLayoutSettles = () => {
+      window.requestAnimationFrame(refresh);
+    };
+
+    const images = Array.from(section.querySelectorAll<HTMLImageElement>('img'));
+
+    images.forEach((image) => {
+      if (image.complete) {
+        return;
+      }
+
+      image.addEventListener('load', refreshAfterLayoutSettles, { once: true });
+      image.addEventListener('error', refreshAfterLayoutSettles, { once: true });
+    });
+
+    window.addEventListener('resize', refresh);
+    media.addEventListener('change', refresh);
+    refreshAfterLayoutSettles();
+
+    return () => {
+      images.forEach((image) => {
+        image.removeEventListener('load', refreshAfterLayoutSettles);
+        image.removeEventListener('error', refreshAfterLayoutSettles);
+      });
+      window.removeEventListener('resize', refresh);
+      media.removeEventListener('change', refresh);
+      context.revert();
+    };
+  }, [project]);
 
   const scrollToLeadForm = () => {
     document
@@ -416,10 +492,16 @@ const ProjectDetail = () => {
           </div>
         </section>
 
-        <section className='section-padding bg-[hsl(var(--brand-black-700))]'>
+        <section
+          ref={detailsSectionRef}
+          className='section-padding bg-[hsl(var(--brand-black-700))]'
+        >
           <div className='container-custom max-w-[96rem] min-w-0'>
-            <div className='grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,320px)] lg:gap-12 xl:grid-cols-[minmax(0,1fr)_minmax(19rem,340px)]'>
-              <div className='min-w-0 space-y-10 lg:space-y-14'>
+            <div className='grid min-w-0 gap-10 lg:items-start lg:grid-cols-[minmax(0,1fr)_minmax(18rem,320px)] lg:gap-12 xl:grid-cols-[minmax(0,1fr)_minmax(19rem,340px)]'>
+              <div
+                ref={detailsContentRef}
+                className='min-w-0 space-y-10 lg:space-y-14'
+              >
                 <motion.div
                   initial='hidden'
                   whileInView='visible'
@@ -675,7 +757,7 @@ const ProjectDetail = () => {
                 id='project-lead-form'
                 className='min-w-0 lg:col-span-1 lg:self-start'
               >
-                <div className='lg:sticky lg:top-28'>
+                <div ref={leadFormPinRef} className='lg:h-fit'>
                   <motion.div
                     initial='hidden'
                     whileInView='visible'
