@@ -17,6 +17,7 @@ type FeaturedProject = {
   description: string;
   image: string;
   location: string;
+  logo: string;
   status: string;
   title: string;
   type: string;
@@ -27,6 +28,7 @@ type RawFeaturedProject = {
   description?: string | null;
   imageUrl?: string | null;
   location?: string | null;
+  projectLogoUrl?: string | null;
   status?: string | null;
   title?: string | null;
   type?: string | null;
@@ -88,6 +90,7 @@ const FeaturedProjectsSection = () => {
               description: project.description || '',
               image: resolveMediaUrl(project.imageUrl, API_URL) || '',
               location: project.location || '',
+              logo: resolveMediaUrl(project.projectLogoUrl, API_URL) || '',
               status: project.status || '',
               title: project.title || 'Featured Project',
               type: project.type || '',
@@ -385,7 +388,15 @@ const ProjectInfoCard = ({
     data-direction={direction}
   >
     <div className='featured-projects-logo-placeholder' aria-hidden='true'>
-      <span>{project.title.slice(0, 2).toUpperCase()}</span>
+      {project.logo ? (
+        <img
+          src={project.logo}
+          alt={`${project.title} logo`}
+          className='featured-projects-logo-image'
+        />
+      ) : (
+        <span>{project.title.slice(0, 2).toUpperCase()}</span>
+      )}
     </div>
 
     <div className='featured-projects-info-content'>
