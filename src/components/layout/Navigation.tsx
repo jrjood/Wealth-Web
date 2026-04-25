@@ -19,7 +19,7 @@ const Navigation = () => {
         id='nav-logo'
         src={emblemImage}
         alt='Wealth Holding Logo'
-        className='h-[52px] w-[52px] cursor-pointer object-contain md:h-[58px] md:w-[58px] [filter:brightness(0)_saturate(100%)_invert(92%)_sepia(16%)_saturate(328%)_hue-rotate(355deg)_brightness(101%)_contrast(93%)]'
+        className='h-[52px] w-[52px] cursor-pointer object-contain md:h-[58px] md:w-[58px] [filter:brightness(0)_invert(1)]'
         onClick={handleLogoClick}
       />
 

@@ -281,17 +281,8 @@ const BlogPost = () => {
 
   return (
     <Layout>
-      <section className='relative isolate flex min-h-[100svh] items-end overflow-hidden bg-[hsl(var(--brand-black))]'>
-        {post.coverImageUrl ? (
-          <img
-            src={resolveMediaUrl(post.coverImageUrl, API_URL)}
-            alt={post.title}
-            className='absolute inset-0 h-full w-full object-cover'
-          />
-        ) : null}
-        <div className='absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.2)_0%,rgba(0,0,0,0.34)_26%,rgba(0,0,0,0.6)_64%,rgba(0,0,0,0.92)_100%)]' />
-
-        <div className='container-custom relative z-10 w-full max-w-6xl pb-12 pt-28 sm:pb-14 sm:pt-32 lg:pb-16'>
+      <section className='bg-background pt-28 sm:pt-32'>
+        <div className='container-custom max-w-6xl'>
           <motion.div
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
@@ -301,7 +292,7 @@ const BlogPost = () => {
               asChild
               variant='ghost'
               size='sm'
-              className='mb-8 border border-white/14 bg-black/20 text-white backdrop-blur-sm hover:border-white/24 hover:bg-black/32 hover:text-white'
+              className='mb-6 border border-border bg-background/70 text-foreground hover:bg-muted'
             >
               <Link to='/blog'>
                 <ArrowLeft className='mr-2 h-4 w-4' /> Back to Blog
@@ -313,39 +304,69 @@ const BlogPost = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className='max-w-4xl'
+            className='overflow-hidden    bg-card shadow-sm'
           >
-            <div className='mb-4 flex flex-wrap gap-2'>
-              <span className='rounded-full border border-white/18 bg-white/10 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm'>
-                {post.category}
-              </span>
-              {parsedTags.map((tag) => (
-                <span
-                  key={tag}
-                  className='rounded-full border border-white/12 bg-black/18 px-3 py-1 text-xs font-medium text-white/82 backdrop-blur-sm'
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+            <div className='grid gap-0 lg:grid-cols-[1.05fr_0.95fr]'>
+              <div className='flex flex-col justify-between p-6 sm:p-8 lg:min-h-[30rem] lg:p-10'>
+                <div>
+                  <div className='mb-5 flex flex-wrap gap-2'>
+                    <span className='rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary'>
+                      {post.category}
+                    </span>
+                    {parsedTags.slice(0, 3).map((tag) => (
+                      <span
+                        key={tag}
+                        className='rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-medium text-muted-foreground'
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
 
-            <h1 className='mb-6 max-w-5xl text-4xl font-bold leading-[0.96] text-white sm:text-5xl lg:text-6xl'>
-              {post.title}
-            </h1>
+                  <h1 className='max-w-3xl text-4xl font-bold leading-[1.02] tracking-tight text-foreground sm:text-5xl lg:text-6xl'>
+                    {post.title}
+                  </h1>
 
-            <div className='flex flex-wrap items-center gap-4 border-b border-white/14 pb-2 text-sm text-white/82'>
-              <span className='flex items-center gap-1.5'>
-                <User className='h-4 w-4' />
-                {post.authorName}
-              </span>
-              <span className='flex items-center gap-1.5'>
-                <Calendar className='h-4 w-4' />
-                {formatDate(post.publishedAt)}
-              </span>
-              <span className='flex items-center gap-1.5'>
-                <Clock className='h-4 w-4' />
-                {post.readingTime} min read
-              </span>
+                  {post.excerpt ? (
+                    <p className='mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg'>
+                      {post.excerpt}
+                    </p>
+                  ) : null}
+                </div>
+
+                <div className='mt-10 flex flex-wrap items-center gap-4 border-t border-border pt-5 text-sm text-muted-foreground'>
+                  <span className='flex items-center gap-1.5'>
+                    <User className='h-4 w-4' />
+                    {post.authorName}
+                  </span>
+                  <span className='flex items-center gap-1.5'>
+                    <Calendar className='h-4 w-4' />
+                    {formatDate(post.publishedAt)}
+                  </span>
+                  <span className='flex items-center gap-1.5'>
+                    <Clock className='h-4 w-4' />
+                    {post.readingTime} min read
+                  </span>
+                </div>
+              </div>
+
+              <div className='relative min-h-[18rem] overflow-hidden bg-muted sm:min-h-[24rem] lg:min-h-full'>
+                {post.coverImageUrl ? (
+                  <img
+                    src={resolveMediaUrl(post.coverImageUrl, API_URL)}
+                    alt={post.title}
+                    className='h-full w-full object-cover'
+                  />
+                ) : (
+                  <div className='flex h-full min-h-[18rem] items-center justify-center text-muted-foreground'>
+                    <BookOpen className='h-14 w-14 opacity-30' />
+                  </div>
+                )}
+                <div
+                  className='pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,transparent_55%,rgba(0,0,0,0.26)_100%)]'
+                  aria-hidden='true'
+                />
+              </div>
             </div>
           </motion.div>
         </div>

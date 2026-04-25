@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { motion, useReducedMotion, useScroll, useSpring } from 'framer-motion';
 
 const valuesItems = [
   {
@@ -32,7 +33,18 @@ const valuesItems = [
 ];
 
 const ValuesSection = () => {
+  const sectionRef = useRef<HTMLElement | null>(null);
   const wordStageRef = useRef<HTMLDivElement | null>(null);
+  const shouldReduceMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start 70%', 'end 40%'],
+  });
+  const progressScale = useSpring(scrollYProgress, {
+    stiffness: 90,
+    damping: 24,
+    mass: 0.4,
+  });
 
   useEffect(() => {
     const wordStage = wordStageRef.current;
@@ -47,6 +59,7 @@ const ValuesSection = () => {
 
   return (
     <section
+      ref={sectionRef}
       id='values-section'
       data-scroll
       data-scroll-speed='0'
@@ -59,7 +72,15 @@ const ValuesSection = () => {
 
         <div className='grid grid-cols-1 gap-8 overflow-visible lg:grid-cols-[minmax(0,1fr)_620px] lg:items-start lg:gap-14'>
           <div className='roadmap-timeline relative flex flex-col gap-10 lg:gap-0'>
-            <div className='absolute bottom-[25vh] left-1.5 top-0 hidden w-0.5 bg-[hsl(var(--brand-red-500))] opacity-20 lg:block' />
+            <div
+              className='absolute bottom-[25vh] left-1.5 top-0 hidden w-px overflow-hidden bg-white/10 lg:block'
+              aria-hidden='true'
+            >
+              <motion.div
+                style={{ scaleY: shouldReduceMotion ? 1 : progressScale }}
+                className='h-full origin-top bg-[hsl(var(--brand-red-500))]'
+              />
+            </div>
 
             {valuesItems.map((item, index) => (
               <div
@@ -68,9 +89,6 @@ const ValuesSection = () => {
                 data-step={item.number}
               >
                 <div className='roadmap-content relative flex max-w-full flex-col gap-3 pl-10 transition-[opacity,transform] duration-500 md:gap-[0.75rem] lg:max-w-[36rem] lg:pl-14 lg:pt-0'>
-                  <div className='roadmap-line absolute left-0 top-[0.4375rem] h-full w-0.5 bg-[linear-gradient(to_bottom,hsl(var(--brand-red-500)/0.3),hsl(var(--brand-red-500)/0.2))] opacity-50 transition-opacity duration-700 lg:h-[24vh]'>
-                    <div className='absolute left-[-0.3125rem] top-[-0.3125rem] h-3 w-3 rounded-full bg-[hsl(var(--brand-red-500))]' />
-                  </div>
                   <div className='flex items-center gap-3'>
                     <div className='roadmap-number text-base font-medium tracking-[1.6px] text-[hsl(var(--brand-gray))]'>
                       {item.number}
@@ -110,6 +128,14 @@ const ValuesSection = () => {
                   {item.word}
                 </span>
               ))}
+              <div className='absolute left-1/2 top-[calc(50%+5rem)] flex w-full max-w-[22rem] -translate-x-1/2 items-center gap-4 px-4'>
+                <div className='relative h-2 flex-1 overflow-hidden rounded-full bg-white/10'>
+                  <motion.div
+                    style={{ scaleX: shouldReduceMotion ? 1 : progressScale }}
+                    className='h-full origin-left rounded-full bg-[hsl(var(--brand-red-500))]'
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
