@@ -43,8 +43,6 @@ import BlogPost from './pages/BlogPost';
 const queryClient = new QueryClient();
 
 function AppRoutes() {
-  useLocomotiveScroll();
-
   const location = useLocation();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -56,6 +54,8 @@ function AppRoutes() {
   const [isSplashComplete, setIsSplashComplete] = useState(
     () => !shouldRenderSplash,
   );
+
+  useLocomotiveScroll(displayLocation.pathname);
   const previousShouldRenderSplashRef = useRef(shouldRenderSplash);
   const isContactPage = location.pathname === '/contact';
   const isProjectDetailPage = /^\/projects\/[^/]+$/.test(location.pathname);

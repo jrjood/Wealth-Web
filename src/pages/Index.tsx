@@ -15,7 +15,8 @@ function Index() {
   useGsapAnimations();
   useSEO({
     title: 'Wealth Holding | Premium Real Estate in Egypt',
-    description: 'Wealth Holding delivers premium real estate developments in Egypt, combining design excellence, strategic locations, and long-term investment value.'
+    description:
+      'Wealth Holding delivers premium real estate developments in Egypt, combining design excellence, strategic locations, and long-term investment value.',
   });
 
   return (

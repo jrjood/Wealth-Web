@@ -6,7 +6,8 @@ import Lenis from 'lenis';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const useLocomotiveScroll = () => {
+const useLocomotiveScroll = (pathname: string) => {
+
   useEffect(() => {
     const lenis = new Lenis({
       duration: 1.15,
@@ -16,7 +17,6 @@ const useLocomotiveScroll = () => {
     });
 
     const scrollListeners = new Set<(data: LenisScrollEvent) => void>();
-    const parallaxTriggers: ScrollTrigger[] = [];
     let rafId = 0;
 
     const handleLenisScroll = (data: {
@@ -42,6 +42,41 @@ const useLocomotiveScroll = () => {
       lenis.resize();
       ScrollTrigger.refresh();
     };
+
+    const raf = (time: number) => {
+      lenis.raf(time);
+      rafId = window.requestAnimationFrame(raf);
+    };
+
+    const lenisBridge: LenisScrollBridge = {
+      off(_event, callback) {
+        scrollListeners.delete(callback);
+      },
+      on(_event, callback) {
+        scrollListeners.add(callback);
+      },
+      scrollTo(target: HTMLElement | number | string, options) {
+        lenis.scrollTo(target, options);
+      },
+    };
+
+    lenis.on('scroll', handleLenisScroll);
+    window.__locoScroll = lenisBridge;
+    rafId = window.requestAnimationFrame(raf);
+    window.addEventListener('resize', refresh);
+
+    return () => {
+      window.removeEventListener('resize', refresh);
+      window.cancelAnimationFrame(rafId);
+      scrollListeners.clear();
+      lenis.off('scroll', handleLenisScroll);
+      lenis.destroy();
+      window.__locoScroll = undefined;
+    };
+  }, []);
+
+  useEffect(() => {
+    const parallaxTriggers: ScrollTrigger[] = [];
 
     const initNativeParallax = () => {
       const elements = document.querySelectorAll<HTMLElement>(
@@ -83,45 +118,34 @@ const useLocomotiveScroll = () => {
       });
     };
 
-    const raf = (time: number) => {
-      lenis.raf(time);
-      rafId = window.requestAnimationFrame(raf);
+    // Use an observer to wait for elements to be added to DOM (handles splash screen delay)
+    let initialized = false;
+    const checkElements = () => {
+      const elements = document.querySelectorAll('[data-scroll][data-scroll-speed]');
+      if (elements.length > 0 && !initialized) {
+        initialized = true;
+        setTimeout(() => {
+          initNativeParallax();
+          ScrollTrigger.refresh();
+        }, 100);
+      }
     };
 
-    const lenisBridge: LenisScrollBridge = {
-      off(_event, callback) {
-        scrollListeners.delete(callback);
-      },
-      on(_event, callback) {
-        scrollListeners.add(callback);
-      },
-      scrollTo(target: HTMLElement | number | string, options) {
-        lenis.scrollTo(target, options);
-      },
-    };
+    const observer = new MutationObserver(() => {
+      checkElements();
+    });
 
-    lenis.on('scroll', handleLenisScroll);
-    window.__locoScroll = lenisBridge;
-    rafId = window.requestAnimationFrame(raf);
-
-    const timer = window.setTimeout(() => {
-      initNativeParallax();
-      ScrollTrigger.refresh();
-      window.addEventListener('resize', refresh);
-    }, 100);
+    observer.observe(document.body, { childList: true, subtree: true });
+    
+    // Check initially in case they are already there
+    checkElements();
 
     return () => {
-      window.clearTimeout(timer);
-      window.removeEventListener('resize', refresh);
-      window.cancelAnimationFrame(rafId);
+      observer.disconnect();
       parallaxTriggers.forEach((trigger) => trigger.kill());
-      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
-      scrollListeners.clear();
-      lenis.off('scroll', handleLenisScroll);
-      lenis.destroy();
-      window.__locoScroll = undefined;
+      parallaxTriggers.length = 0;
     };
-  }, []);
+  }, [pathname]);
 };
 
 export default useLocomotiveScroll;
