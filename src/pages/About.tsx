@@ -20,6 +20,7 @@ import useGsapAnimations from '@/hooks/useGsapAnimations';
 import { emblemImage, officeBuildingImage } from '@/assets';
 import owner1 from '@/assets/images/owner1.jpg';
 import owner2 from '@/assets/images/owner2.jpg';
+import { useSEO } from '@/hooks/useSEO';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 34 },
@@ -430,6 +431,10 @@ const JourneySection = () => {
 
 const About = () => {
   useGsapAnimations();
+  useSEO({
+    title: 'About Us | Wealth Holding',
+    description: 'Learn about Wealth Holding, our history, our leadership, and our vision for delivering premium real estate destinations in Egypt.'
+  });
 
   const shouldReduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll();

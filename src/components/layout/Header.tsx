@@ -20,7 +20,7 @@ import './Header.css';
 
 const navLinks = [
   { href: '/', label: 'Home' },
-  { href: '/about', label: 'About' },
+  { href: '/about-us', label: 'About' },
   { href: '/projects', label: 'Projects' },
   { href: '/services', label: 'Services' },
   { href: '/careers', label: 'Careers' },

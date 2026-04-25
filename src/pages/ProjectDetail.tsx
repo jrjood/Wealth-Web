@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input';
 import { resolveMediaUrl } from '@/lib/media';
 import { getYouTubeEmbedUrl, isDirectVideoUrl } from '@/lib/video';
 import { useToast } from '@/hooks/use-toast';
+import { useSEO } from '@/hooks/useSEO';
 import { ImageLightbox } from '@/components/projects/ImageLightbox';
 import { PaymentPlanCard } from '@/components/projects/PaymentPlanCard';
 import { ProjectGallery } from '@/components/projects/ProjectGallery';
@@ -141,6 +142,11 @@ const ProjectDetail = () => {
   });
   const [leadSubmitting, setLeadSubmitting] = useState(false);
   const { toast } = useToast();
+
+  useSEO({
+    title: project ? `${project.title} | Wealth Holding` : 'Project Detail | Wealth Holding',
+    description: project?.description || 'Explore premium real estate projects by Wealth Holding.'
+  });
 
   useEffect(() => {
     const fetchProject = async () => {

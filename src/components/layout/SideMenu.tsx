@@ -8,7 +8,7 @@ type SideMenuProps = {
 
 const menuItems = [
   { label: 'Home', path: '/' },
-  { label: 'About', path: '/about' },
+  { label: 'About', path: '/about-us' },
   { label: 'Projects', path: '/projects' },
   { label: 'Careers', path: '/careers' },
   { label: 'Blog', path: '/blog' },

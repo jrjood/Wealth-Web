@@ -15,6 +15,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { FaTwitter, FaLinkedinIn } from 'react-icons/fa';
+import { useSEO } from '@/hooks/useSEO';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -185,9 +186,13 @@ const BlogPost = () => {
   }, [slug]);
 
   // SEO meta
+  useSEO({
+    title: post ? `${post.title} — Wealth Holding Blog` : 'Blog Post — Wealth Holding',
+    description: post?.excerpt || 'Expert insights on luxury real estate.'
+  });
+
   useEffect(() => {
     if (!post) return;
-    document.title = `${post.title} — Wealth Holding Blog`;
 
     const setMeta = (property: string, content: string) => {
       let el = document.querySelector<HTMLMetaElement>(
@@ -208,10 +213,6 @@ const BlogPost = () => {
     if (post.coverImageUrl) {
       setMeta('og:image', resolveMediaUrl(post.coverImageUrl, API_URL));
     }
-
-    return () => {
-      document.title = 'Wealth Holding';
-    };
   }, [post]);
 
   const handleCopyLink = () => {

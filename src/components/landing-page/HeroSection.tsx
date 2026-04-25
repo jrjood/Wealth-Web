@@ -52,7 +52,7 @@ const HeroSection = () => {
               label='GET STARTED'
               className='learn-more-btn border-0 px-7 md:px-10'
               labelClassName='text-sm md:text-base'
-              onClick={() => navigate('/about')}
+              onClick={() => navigate('/about-us')}
             />
           </div>
         </div>

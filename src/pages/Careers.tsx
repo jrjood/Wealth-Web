@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select';
 import AnimatedPillButton from '@/components/ui/AnimatedPillButton';
 import { useToast } from '@/hooks/use-toast';
+import { useSEO } from '@/hooks/useSEO';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const MAX_CV_SIZE = 20 * 1024 * 1024;
@@ -76,6 +77,10 @@ const benefits = [
 ];
 
 const Careers = () => {
+  useSEO({
+    title: 'Careers | Wealth Holding',
+    description: 'Build your career with a company that’s shaping the future of real estate. View our open positions and join our team.'
+  });
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
   const [selectedJobId, setSelectedJobId] = useState('general');
   const [openings, setOpenings] = useState<Job[]>([]);

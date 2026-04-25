@@ -9,9 +9,14 @@ import SloganSection from '@/components/landing-page/SloganSection';
 import VideoShowcaseSection from '@/components/landing-page/VideoShowcaseSection';
 import WhatIsWealthSection from '@/components/landing-page/WhatIsWealthSection';
 import useGsapAnimations from '@/hooks/useGsapAnimations';
+import { useSEO } from '@/hooks/useSEO';
 
 function Index() {
   useGsapAnimations();
+  useSEO({
+    title: 'Wealth Holding | Premium Real Estate in Egypt',
+    description: 'Wealth Holding delivers premium real estate developments in Egypt, combining design excellence, strategic locations, and long-term investment value.'
+  });
 
   return (
     <>

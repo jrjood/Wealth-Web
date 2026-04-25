@@ -181,7 +181,7 @@ function AppRoutes() {
       {isSplashComplete ? (
         <Routes location={displayLocation}>
           <Route path='/' element={<Index />} />
-          <Route path='/about' element={<About />} />
+          <Route path='/about-us' element={<About />} />
           <Route path='/projects' element={<Projects />} />
           <Route path='/projects/:slug' element={<ProjectDetail />} />
           <Route path='/careers' element={<Careers />} />

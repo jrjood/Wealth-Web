@@ -6,6 +6,7 @@ import { MapPin, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { resolveMediaUrl } from '@/lib/media';
 import ParaEffect from '@/components/landing-page/ParaEffect';
+import { useSEO } from '@/hooks/useSEO';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -24,6 +25,10 @@ const types = ['All', 'Residential', 'Luxury Residential', 'Commercial'];
 const statuses = ['All', 'Completed', 'Selling Now', 'Under Construction'];
 
 const Projects = () => {
+  useSEO({
+    title: 'Our Projects | Wealth Holding',
+    description: 'Explore our portfolio of iconic developments that define luxury living and commercial excellence in Egypt.'
+  });
   const [typeFilter, setTypeFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [allProjects, setAllProjects] = useState<Project[]>([]);

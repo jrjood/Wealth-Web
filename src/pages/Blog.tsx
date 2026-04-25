@@ -5,6 +5,7 @@ import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Search, Calendar, Clock, ArrowRight, BookOpen } from 'lucide-react';
 import { resolveMediaUrl } from '@/lib/media';
+import { useSEO } from '@/hooks/useSEO';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -115,9 +116,10 @@ const Blog = () => {
   }, [posts]);
 
   // SEO
-  useEffect(() => {
-    document.title = 'Blog — Wealth Holding';
-  }, []);
+  useSEO({
+    title: 'Blog — Wealth Holding',
+    description: 'Expert insights on luxury real estate, market trends, design inspiration, and investment strategies.'
+  });
 
   return (
     <Layout>

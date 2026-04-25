@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { useSEO } from '@/hooks/useSEO';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -160,6 +161,10 @@ const inputIconClass =
   'pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/36 transition-colors group-focus-within:text-[hsl(var(--brand-red-500))]';
 
 const Contact = () => {
+  useSEO({
+    title: 'Contact Us | Wealth Holding',
+    description: 'Get in touch with Wealth Holding. Find our office locations, contact information, or send us a message directly.'
+  });
   const [projects, setProjects] = useState<ProjectOption[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
   const [selectedCountryCode, setSelectedCountryCode] = useState('+20');

@@ -8,9 +8,9 @@ import {
 import { Link } from 'react-router-dom';
 
 const quickLinksColumnA = [
-  { label: 'About', to: '/about' },
+  { label: 'Home', to: '/' },
+  { label: 'About', to: '/about-us' },
   { label: 'Projects', to: '/projects' },
-  { label: 'Services', to: '/services' },
   { label: 'Careers', to: '/careers' },
   { label: 'Blog', to: '/blog' },
   { label: 'Contact', to: '/contact' },
