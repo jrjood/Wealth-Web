@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, PointerEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import '@/styles/sections/FeaturedProjectsSection.css';
 import { resolveMediaUrl } from '@/lib/media';
 import { getProjectSlug } from '@/lib/projectSlug';
@@ -35,10 +35,11 @@ type RawFeaturedProject = {
   type?: string | null;
 };
 
-const formatProjectNumber = (value: number) => String(value).padStart(2, '0');
-
 const getPrimaryLocation = (location: string) =>
   location.split(',')[0]?.trim() || '';
+
+const getStatusLabel = (status: string) =>
+  status === 'Selling Now' ? 'Launching' : status;
 
 const AnimatedProjectTitle = ({
   title,
@@ -195,7 +196,7 @@ const FeaturedProjectsSection = () => {
 
     return Boolean(
       target.closest(
-        'a, button, input, textarea, select, [role="button"], .featured-projects-controls, .featured-projects-info-card',
+        'a, button, input, textarea, select, [role="button"], .featured-projects-controls, .featured-projects-meta',
       ),
     );
   };
@@ -269,8 +270,6 @@ const FeaturedProjectsSection = () => {
   const outgoingProject =
     previousIndex === null ? null : featuredProjects[previousIndex];
   const totalProjects = featuredProjects.length;
-  const currentProjectNumber = formatProjectNumber(currentIndex + 1);
-  const totalProjectNumber = formatProjectNumber(totalProjects);
   const hasMultipleProjects = totalProjects > 1;
 
   return (
@@ -315,6 +314,20 @@ const FeaturedProjectsSection = () => {
 
       <div className='featured-projects-shade' aria-hidden='true' />
 
+      <div className='featured-projects-controls'>
+        <div className='featured-projects-controls-panel'>
+          <span className='featured-projects-progress-track'>
+            <span
+              key={progressKey}
+              className='featured-projects-progress-fill'
+              style={{
+                animationDuration: `${AUTOPLAY_DELAY}ms`,
+              }}
+            />
+          </span>
+        </div>
+      </div>
+
       <div className='featured-projects-shell'>
         <div className='featured-projects-heading'>
           <span>Featured Projects</span>
@@ -327,134 +340,59 @@ const FeaturedProjectsSection = () => {
             ) : null}
             <AnimatedProjectTitle title={activeProject.title} variant='in' />
           </h2>
-          <Link
-            to='/projects'
-            className='inline-flex items-center gap-4 rounded-full border border-white/40 px-7 py-4 text-lg transition-[border-color,background-color,transform] duration-300 hover:-translate-y-0.5 hover:border-white hover:bg-white/5'
-          >
-            <span className='h-px w-6 bg-current' />
-            <span>Show All Projects</span>
-          </Link>
+          <ProjectHeroInfo project={activeProject} />
         </div>
 
-        <div className='featured-projects-controls'>
-          <div className='featured-projects-controls-panel'>
-            <div className='featured-projects-controls-head'>
-              <span className='featured-projects-counter'>
-                <span className='featured-projects-counter-current'>
-                  <span
-                    key={`counter-current-${currentProjectNumber}-${progressKey}`}
-                    className='featured-projects-counter-current-value'
-                  >
-                    {currentProjectNumber}
-                  </span>
-                </span>
-                <span className='featured-projects-counter-separator'>/</span>
-                <span className='featured-projects-counter-total'>
-                  <span className='featured-projects-counter-total-value'>
-                    {totalProjectNumber}
-                  </span>
-                </span>
-              </span>
-
-              <div className='featured-projects-control-row'>
-                <button
-                  type='button'
-                  className='featured-projects-arrow'
-                  onClick={goPrevious}
-                  disabled={!hasMultipleProjects}
-                  aria-label='Previous featured project'
-                >
-                  <ChevronLeft aria-hidden='true' />
-                </button>
-
-                <button
-                  type='button'
-                  className='featured-projects-arrow'
-                  onClick={goNext}
-                  disabled={!hasMultipleProjects}
-                  aria-label='Next featured project'
-                >
-                  <ChevronRight aria-hidden='true' />
-                </button>
-              </div>
-            </div>
-
-            <span className='featured-projects-progress-track'>
-              <span
-                key={progressKey}
-                className='featured-projects-progress-fill'
-                style={{
-                  animationDuration: `${AUTOPLAY_DELAY}ms`,
-                }}
-              />
-            </span>
-          </div>
-        </div>
-
-        <div className='featured-projects-card-stage'>
-          {outgoingProject ? (
-            <ProjectInfoCard
-              key={`card-out-${outgoingProject.id}-${progressKey}`}
-              project={outgoingProject}
-              state='out'
-              direction={direction}
-            />
-          ) : null}
-          <ProjectInfoCard
-            key={`card-in-${activeProject.id}-${progressKey}`}
-            project={activeProject}
-            state='in'
-            direction={direction}
-          />
-        </div>
       </div>
     </section>
   );
 };
 
-const ProjectInfoCard = ({
+const ProjectHeroInfo = ({
   project,
-  state,
-  direction,
 }: {
   project: FeaturedProject;
-  state: 'in' | 'out';
-  direction: SlideDirection;
 }) => (
-  <article
-    className='featured-projects-info-card'
-    data-state={state}
-    data-direction={direction}
-  >
-    <div className='featured-projects-logo-placeholder' aria-hidden='true'>
-      {project.logo ? (
-        <img
-          src={project.logo}
-          alt={`${project.title} logo`}
-          className='featured-projects-logo-image'
-        />
-      ) : (
-        <span>{project.title.slice(0, 2).toUpperCase()}</span>
-      )}
+  <div className='featured-projects-meta' key={project.id}>
+    <div className='featured-projects-meta-head'>
+      <div className='featured-projects-meta-logo' aria-hidden='true'>
+        {project.logo ? (
+          <img
+            src={project.logo}
+            alt={`${project.title} logo`}
+            className='featured-projects-meta-logo-image'
+          />
+        ) : (
+          <span>{project.title.slice(0, 2).toUpperCase()}</span>
+        )}
+      </div>
+
+      <div className='featured-projects-meta-signals'>
+        {project.location ? (
+          <span>{getPrimaryLocation(project.location)}</span>
+        ) : null}
+        {project.type ? <span>{project.type}</span> : null}
+        {project.status ? <span>{getStatusLabel(project.status)}</span> : null}
+      </div>
     </div>
 
-    <div className='featured-projects-info-content'>
-      <h3>{project.title}</h3>
-      <p>{project.description}</p>
-      {project.location ? (
-        <div className='featured-projects-info-location'>
-          {getPrimaryLocation(project.location)}
-        </div>
-      ) : null}
-      <Link
-        to={`/projects/${getProjectSlug(project)}`}
-        className='featured-projects-link'
-      >
-        <span> About Project</span>
-        <ArrowUpRight aria-hidden='true' />
-      </Link>
+    <div className='featured-projects-meta-body'>
+      {project.description ? <p>{project.description}</p> : null}
+      <div className='featured-projects-meta-actions'>
+        <Link
+          to={`/projects/${getProjectSlug(project)}`}
+          className='featured-projects-about-link'
+        >
+          <span>About Project</span>
+          <ArrowUpRight aria-hidden='true' />
+        </Link>
+        <Link to='/projects' className='featured-projects-all-link'>
+          <span>Show All Projects</span>
+          <ArrowUpRight aria-hidden='true' />
+        </Link>
+      </div>
     </div>
-  </article>
+  </div>
 );
 
 export default FeaturedProjectsSection;

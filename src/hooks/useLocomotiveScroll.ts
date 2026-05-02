@@ -63,6 +63,12 @@ const useLocomotiveScroll = (pathname: string, enabled = true) => {
       scrollTo(target: HTMLElement | number | string, options) {
         lenis.scrollTo(target, options);
       },
+      start() {
+        lenis.start();
+      },
+      stop() {
+        lenis.stop();
+      },
     };
 
     lenis.on('scroll', handleLenisScroll);

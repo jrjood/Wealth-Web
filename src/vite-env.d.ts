@@ -22,6 +22,8 @@ interface LenisScrollBridge {
       offset?: number;
     },
   ): void;
+  start(): void;
+  stop(): void;
 }
 
 interface Window {

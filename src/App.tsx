@@ -82,24 +82,39 @@ function AppRoutes() {
   }, [shouldRenderSplash]);
 
   useEffect(() => {
-    document.body.style.overflow = isMenuOpen ? 'hidden' : '';
+    const shouldLockScroll =
+      isMenuOpen || (shouldRenderSplash && !isSplashComplete);
 
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isMenuOpen]);
-
-  useEffect(() => {
-    if (!shouldRenderSplash) {
+    if (!shouldLockScroll) {
+      window.__locoScroll?.start();
       return;
     }
 
-    document.body.style.overflow = isSplashComplete ? '' : 'hidden';
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    const previousHtmlOverscrollBehavior =
+      document.documentElement.style.overscrollBehavior;
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousBodyOverscrollBehavior =
+      document.body.style.overscrollBehavior;
+    const previousBodyTouchAction = document.body.style.touchAction;
+
+    window.__locoScroll?.stop();
+    document.documentElement.style.overflow = 'hidden';
+    document.documentElement.style.overscrollBehavior = 'none';
+    document.body.style.overflow = 'hidden';
+    document.body.style.overscrollBehavior = 'none';
+    document.body.style.touchAction = 'none';
 
     return () => {
-      document.body.style.overflow = '';
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      document.documentElement.style.overscrollBehavior =
+        previousHtmlOverscrollBehavior;
+      document.body.style.overflow = previousBodyOverflow;
+      document.body.style.overscrollBehavior = previousBodyOverscrollBehavior;
+      document.body.style.touchAction = previousBodyTouchAction;
+      window.__locoScroll?.start();
     };
-  }, [isSplashComplete, shouldRenderSplash]);
+  }, [isMenuOpen, isSplashComplete, shouldRenderSplash]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
