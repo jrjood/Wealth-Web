@@ -35,19 +35,16 @@ export const PaymentPlanCard = ({ paymentPlan }: PaymentPlanCardProps) => {
   ];
 
   return (
-    <section className='relative min-w-0 overflow-hidden bg-[hsl(var(--brand-black-800))] px-4 py-10 sm:px-8 sm:py-12 lg:px-10'>
-      <div className='mb-10 grid min-w-0 gap-4 md:grid-cols-[minmax(0,0.65fr)_minmax(0,0.35fr)] md:items-end'>
+    <section className='relative min-w-0 overflow-hidden bg-[hsl(var(--brand-black-800))] px-4 py-7 sm:px-8 sm:py-9 lg:px-10'>
+      <div className='mb-7 grid min-w-0 gap-4 md:grid-cols-[minmax(0,0.65fr)_minmax(0,0.35fr)] md:items-end'>
         <div className='min-w-0'>
           <p className='mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-white/55'>
             Commercial Terms
           </p>
-          <h2 className='break-words text-4xl font-black uppercase tracking-[0.08em] text-[hsl(var(--brand-gold))] sm:text-5xl md:text-6xl'>
+          <h2 className='break-words text-3xl font-bold uppercase tracking-[0.08em] text-[hsl(var(--brand-gold))] sm:text-4xl md:text-5xl'>
             Payment Plan
           </h2>
         </div>
-        <p className='min-w-0 text-sm leading-7 text-white/62 md:text-right'>
-          Flexible ownership terms designed to make the next step clear.
-        </p>
       </div>
 
       <div className='grid min-w-0 border-y border-white/12 md:grid-cols-3'>

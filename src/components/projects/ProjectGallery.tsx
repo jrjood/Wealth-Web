@@ -65,9 +65,9 @@ export const ProjectGallery = ({
 
   return (
     <>
-      <section className='relative min-w-0 overflow-hidden bg-[hsl(var(--brand-black-800))] px-4 py-10 sm:px-8 sm:py-12 lg:px-10'>
-        <div className='mb-10 flex min-w-0 flex-col gap-4 sm:mb-12 sm:flex-row sm:items-end sm:justify-between'>
-          <h2 className='break-words text-4xl font-black uppercase tracking-[0.08em] text-[hsl(var(--brand-gold))] sm:text-5xl md:text-7xl'>
+      <section className='relative min-w-0 overflow-hidden bg-[hsl(var(--brand-black-800))] px-4 py-7 sm:px-8 sm:py-9 lg:px-10'>
+        <div className='mb-7 flex min-w-0 flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between'>
+          <h2 className='break-words text-3xl font-bold uppercase tracking-[0.08em] text-[hsl(var(--brand-gold))] sm:text-4xl md:text-5xl'>
             {title}
           </h2>
           <div className='flex items-center gap-4 text-sm font-semibold tracking-[0.16em] text-white/60'>

@@ -1,17 +1,26 @@
-import { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import 'flag-icons/css/flag-icons.min.css';
-import { Layout } from '@/components/layout/Layout';
 import {
-  Briefcase,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+} from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  ArrowRight,
+  BriefcaseBusiness,
+  Check,
   ChevronDown,
   Clock,
   FileText,
   MapPin,
+  Send,
   Upload,
+  Users,
   X,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Layout } from '@/components/layout/Layout';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -32,31 +41,7 @@ const ALLOWED_CV_TYPES = [
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ];
-
 const ALLOWED_CV_EXTENSIONS = ['.pdf', '.doc', '.docx'];
-
-const COUNTRIES = [
-  { name: 'United Arab Emirates', code: '+971', isoCode: 'ae' },
-  { name: 'Saudi Arabia', code: '+966', isoCode: 'sa' },
-  { name: 'Egypt', code: '+20', isoCode: 'eg' },
-  { name: 'Kuwait', code: '+965', isoCode: 'kw' },
-  { name: 'Qatar', code: '+974', isoCode: 'qa' },
-  { name: 'Bahrain', code: '+973', isoCode: 'bh' },
-  { name: 'Oman', code: '+968', isoCode: 'om' },
-  { name: 'Jordan', code: '+962', isoCode: 'jo' },
-  { name: 'Lebanon', code: '+961', isoCode: 'lb' },
-  { name: 'Palestine', code: '+970', isoCode: 'ps' },
-  { name: 'Iraq', code: '+964', isoCode: 'iq' },
-  { name: 'Syria', code: '+963', isoCode: 'sy' },
-  { name: 'United Kingdom', code: '+44', isoCode: 'gb' },
-  { name: 'United States', code: '+1', isoCode: 'us' },
-  { name: 'Canada', code: '+1', isoCode: 'ca' },
-  { name: 'Australia', code: '+61', isoCode: 'au' },
-  { name: 'India', code: '+91', isoCode: 'in' },
-  { name: 'Pakistan', code: '+92', isoCode: 'pk' },
-  { name: 'France', code: '+33', isoCode: 'fr' },
-  { name: 'Germany', code: '+49', isoCode: 'de' },
-];
 
 interface Job {
   id: string;
@@ -68,27 +53,42 @@ interface Job {
 }
 
 const benefits = [
-  'Competitive salary packages',
-  'Health insurance coverage',
-  'Annual performance bonuses',
+  'Competitive compensation',
+  'Medical coverage',
+  'Performance bonuses',
   'Professional development',
-  'Flexible work arrangements',
-  'Employee wellness programs',
+  'Cross-functional project exposure',
+  'Wellness and team programs',
 ];
+
+const journeySteps = [
+  'Apply with your CV',
+  'HR screening',
+  'Team interview',
+  'Offer and onboarding',
+];
+
+const getDescriptionBullets = (description: string) =>
+  description
+    .split('.')
+    .map((sentence) => sentence.trim())
+    .filter(Boolean);
 
 const Careers = () => {
   useSEO({
     title: 'Careers | Wealth Holding',
-    description: 'Build your career with a company that’s shaping the future of real estate. View our open positions and join our team.'
+    description:
+      'Build your career with a company shaping real estate destinations. View open positions and submit your application.',
   });
+
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
   const [selectedJobId, setSelectedJobId] = useState('general');
+  const [activeDepartment, setActiveDepartment] = useState('All');
   const [openings, setOpenings] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDraggingCv, setIsDraggingCv] = useState(false);
   const [cvFile, setCvFile] = useState<File | null>(null);
-  const [selectedCountryCode, setSelectedCountryCode] = useState('+20');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const formRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
@@ -101,11 +101,31 @@ const Careers = () => {
     message: '',
   });
 
-  useEffect(() => {
-    fetchJobs();
-  }, []);
+  const departments = useMemo(
+    () => [
+      'All',
+      ...Array.from(
+        new Set(
+          openings
+            .map((job) => job.department.trim())
+            .filter((department) => department.length > 0),
+        ),
+      ),
+    ],
+    [openings],
+  );
 
-  const fetchJobs = async () => {
+  const filteredOpenings = useMemo(
+    () =>
+      activeDepartment === 'All'
+        ? openings
+        : openings.filter((job) => job.department === activeDepartment),
+    [activeDepartment, openings],
+  );
+
+  const selectedJob = openings.find((job) => job.id === selectedJobId);
+
+  const fetchJobs = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/api/jobs`);
       const data = await response.json();
@@ -120,7 +140,11 @@ const Careers = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    void fetchJobs();
+  }, [fetchJobs]);
 
   const scrollToApplicationForm = () => {
     window.requestAnimationFrame(() => {
@@ -169,9 +193,7 @@ const Careers = () => {
   };
 
   const handleFile = (file: File | null) => {
-    if (!file) {
-      return;
-    }
+    if (!file) return;
 
     if (!validateCvFile(file)) {
       if (fileInputRef.current) {
@@ -211,8 +233,8 @@ const Careers = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
 
     if (!cvFile) {
       toast({
@@ -226,16 +248,13 @@ const Careers = () => {
     setIsSubmitting(true);
 
     try {
-      const selectedJob = openings.find((job) => job.id === formData.jobId);
+      const job = openings.find((opening) => opening.id === formData.jobId);
       const applicationData = new FormData();
       applicationData.append('name', formData.name.trim());
       applicationData.append('email', formData.email.trim());
       applicationData.append('phone', formData.phone.trim());
       applicationData.append('jobId', formData.jobId);
-      applicationData.append(
-        'jobTitle',
-        selectedJob?.title ?? 'General Application',
-      );
+      applicationData.append('jobTitle', job?.title ?? 'General Application');
       applicationData.append('message', formData.message.trim());
       applicationData.append('cv', cvFile);
 
@@ -266,7 +285,6 @@ const Careers = () => {
       });
       clearCvFile();
       setSelectedJobId('general');
-      setSelectedCountryCode('+20');
     } catch (error) {
       toast({
         title: 'Application not sent',
@@ -281,146 +299,172 @@ const Careers = () => {
     }
   };
 
-  const selectedJob = openings.find((job) => job.id === selectedJobId);
-
   return (
     <Layout>
-      <section className='bg-muted pt-32 pb-20'>
-        <div className='container-custom'>
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className='mx-auto max-w-3xl text-center'
-          >
-            <h1 className='heading-display mb-6 text-foreground'>
-              Join Our Team
-            </h1>
-            <p className='text-body-lg text-foreground/70'>
-              Build your career with a company that’s shaping the future of real
-              estate.
-            </p>
-          </motion.div>
-        </div>
-      </section>
+      <main className='min-w-0 bg-[hsl(var(--brand-black))] text-white'>
+        <section className='relative overflow-hidden bg-[hsl(var(--brand-black-800))]'>
+          <img
+            src='https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1800&q=82'
+            alt='Modern workplace interior'
+            className='absolute inset-0 h-full w-full object-cover opacity-42'
+          />
+          <div className='absolute inset-0 bg-black/72' />
+          <div className='absolute inset-0 bg-gradient-to-b from-black/70 via-black/56 to-[hsl(var(--brand-black-800))]' />
 
-      <section className='section-padding bg-background'>
-        <div className='container-custom'>
-          <div className='grid items-center gap-16 lg:grid-cols-2'>
+          <div className='container-custom relative z-10 flex min-h-[55vh] max-w-[96rem] flex-col justify-end pb-8 pt-28 sm:min-h-[58vh] sm:pb-10 lg:pt-32'>
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
+              initial={{ opacity: 0, y: 28 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              className='max-w-4xl'
             >
-              <span className='mb-4 block text-sm font-semibold uppercase tracking-wide text-secondary'>
-                Why Join Us
-              </span>
-              <h2 className='heading-section mb-6 text-foreground'>
-                A Career Built on Excellence
-              </h2>
-              <p className='text-body-lg mb-8 text-muted-foreground'>
-                At Wealth Holding, we believe our people are our greatest asset.
-                We offer a dynamic work environment, opportunities for growth,
-                and the chance to work on iconic projects that shape skylines.
+              <p className='mb-4 inline-flex items-center gap-3 border border-white/16 bg-white/[0.06] px-4 py-3 text-xs font-semibold uppercase tracking-[0.22em] text-white/72 backdrop-blur-md'>
+                <BriefcaseBusiness className='h-4 w-4 text-[hsl(var(--brand-gold))]' />
+                Careers at Wealth Holding
               </p>
-              <div className='grid gap-4 sm:grid-cols-2'>
-                {benefits.map((benefit) => (
-                  <div key={benefit} className='flex items-center gap-3'>
-                    <div className='h-2 w-2 rounded-full bg-primary' />
-                    <span className='text-foreground'>{benefit}</span>
-                  </div>
-                ))}
+              <h1 className='max-w-4xl break-words text-4xl font-bold uppercase leading-[0.96] tracking-[0.06em] text-white sm:text-5xl md:text-6xl'>
+                Careers that move real estate forward.
+              </h1>
+              <p className='mt-5 max-w-2xl text-sm leading-7 text-white/66 sm:text-base'>
+                Explore open roles, choose the best fit, and submit your profile
+                directly to our HR team.
+              </p>
+
+              <div className='mt-7 flex flex-col gap-3 sm:flex-row'>
+                <button
+                  type='button'
+                  onClick={scrollToApplicationForm}
+                  className='inline-flex cursor-pointer items-center justify-center gap-3 border border-[hsl(var(--brand-gold))] bg-[hsl(var(--brand-cream))] px-5 py-3 text-xs font-bold uppercase tracking-[0.16em] text-[hsl(var(--brand-black))] transition-colors duration-200 hover:bg-[hsl(var(--brand-yellow))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--brand-gold))] focus:ring-offset-2 focus:ring-offset-black'
+                >
+                  Apply Now
+                  <ArrowRight className='h-4 w-4' />
+                </button>
               </div>
             </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className='aspect-square overflow-hidden rounded-sm bg-muted shadow-[0_4px_24px_-4px_hsl(0_0%_0%_/_0.08)]'
-            >
-              <img
-                src='https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80'
-                alt='Professional team collaborating in a modern office'
-                className='h-full w-full object-cover transition-transform duration-700 hover:scale-105'
-              />
-            </motion.div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className='section-padding bg-muted'>
-        <div className='container-custom'>
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className='mb-16 text-center'
-          >
-            <span className='mb-4 block text-sm font-semibold uppercase tracking-wide text-secondary'>
-              Opportunities
-            </span>
-            <h2 className='heading-section text-foreground'>Open Positions</h2>
-          </motion.div>
+        <section
+          id='open-positions'
+          className='bg-[hsl(var(--brand-black-800))] py-12 sm:py-16 lg:py-20'
+        >
+          <div className='container-custom max-w-[96rem]'>
+            <div className='mb-8 grid gap-6 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:items-end'>
+              <div>
+                <p className='mb-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-white/48'>
+                  <Users className='h-4 w-4 text-[hsl(var(--brand-gold))]' />
+                  Open Positions
+                </p>
+                <h2 className='break-words text-3xl font-bold uppercase tracking-[0.08em] text-[hsl(var(--brand-gold))] sm:text-4xl md:text-5xl'>
+                  Find your next role.
+                </h2>
+              </div>
 
-          {loading ? (
-            <div className='py-12 text-center'>
-              <p className='text-lg text-muted-foreground'>
-                Loading job openings...
-              </p>
-            </div>
-          ) : openings.length === 0 ? (
-            <div className='py-12 text-center'>
-              <p className='text-lg text-muted-foreground'>
-                No job openings at the moment. Check back soon!
-              </p>
-            </div>
-          ) : (
-            <div className='mx-auto max-w-4xl space-y-4'>
-              {openings.map((job, index) => {
-                const isExpanded = expandedJobId === job.id;
-
-                return (
-                  <motion.div
-                    key={job.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
+              <div className='flex min-w-0 flex-wrap gap-2 lg:justify-end'>
+                {departments.map((department) => (
+                  <button
+                    key={department}
+                    type='button'
+                    onClick={() => setActiveDepartment(department)}
+                    className={`cursor-pointer border px-4 py-3 text-xs font-bold uppercase tracking-[0.14em] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--brand-gold))] focus:ring-offset-2 focus:ring-offset-[hsl(var(--brand-black-800))] ${
+                      activeDepartment === department
+                        ? 'border-[hsl(var(--brand-gold))] bg-[hsl(var(--brand-gold))] text-[hsl(var(--brand-black))]'
+                        : 'border-white/12 bg-white/[0.035] text-white/68 hover:border-white/30 hover:bg-white/[0.07]'
+                    }`}
                   >
-                    <div
-                      className='cursor-pointer rounded-sm bg-card card-elevated'
-                      onClick={() =>
-                        setExpandedJobId((current) =>
-                          current === job.id ? null : job.id,
-                        )
-                      }
+                    {department}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {loading ? (
+              <div className='border border-white/12 bg-black/22 px-5 py-12 text-center text-white/62'>
+                Loading job openings...
+              </div>
+            ) : openings.length === 0 ? (
+              <div className='border border-white/12 bg-black/22 px-5 py-12 text-center'>
+                <p className='text-xl font-semibold text-white'>
+                  No open roles right now
+                </p>
+                <p className='mx-auto mt-3 max-w-2xl text-sm leading-7 text-white/58'>
+                  Submit a general application and the HR team can review your
+                  profile when a suitable opening becomes available.
+                </p>
+              </div>
+            ) : filteredOpenings.length === 0 ? (
+              <div className='border border-white/12 bg-black/22 px-5 py-12 text-center text-white/62'>
+                No roles match this department filter.
+              </div>
+            ) : (
+              <div className='grid gap-4'>
+                {filteredOpenings.map((job, index) => {
+                  const isExpanded = expandedJobId === job.id;
+                  const descriptionBullets = getDescriptionBullets(
+                    job.description,
+                  );
+
+                  return (
+                    <motion.article
+                      key={job.id}
+                      initial={{ opacity: 0, y: 22 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.16 }}
+                      transition={{
+                        delay: index * 0.06,
+                        duration: 0.5,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
+                      className='border border-white/12 bg-black/24 transition-colors duration-200 hover:border-[hsl(var(--brand-gold)/0.58)] hover:bg-black/34'
                     >
-                      <div className='flex items-center justify-between p-6'>
-                        <div>
-                          <h3 className='mb-2 text-lg font-semibold text-foreground'>
+                      <div className='grid gap-5 p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:p-6'>
+                        <div className='min-w-0'>
+                          <h3 className='break-words text-2xl font-semibold leading-tight text-white sm:text-3xl'>
                             {job.title}
                           </h3>
-                          <div className='flex flex-wrap gap-4 text-sm text-muted-foreground'>
-                            <span className='flex items-center gap-1'>
-                              <Briefcase className='h-4 w-4' />
+                          <div className='mt-5 flex flex-wrap gap-x-5 gap-y-3 text-sm text-white/58'>
+                            <span className='inline-flex items-center gap-2'>
+                              <BriefcaseBusiness className='h-4 w-4 text-[hsl(var(--brand-gold))]' />
                               {job.department}
                             </span>
-                            <span className='flex items-center gap-1'>
-                              <MapPin className='h-4 w-4' />
+                            <span className='inline-flex items-center gap-2'>
+                              <MapPin className='h-4 w-4 text-[hsl(var(--brand-gold))]' />
                               {job.location}
                             </span>
-                            <span className='flex items-center gap-1'>
-                              <Clock className='h-4 w-4' />
+                            <span className='inline-flex items-center gap-2'>
+                              <Clock className='h-4 w-4 text-[hsl(var(--brand-gold))]' />
                               {job.type}
                             </span>
                           </div>
                         </div>
-                        <ChevronDown
-                          className={`h-5 w-5 text-muted-foreground transition-transform ${
-                            isExpanded ? 'rotate-180' : ''
-                          }`}
-                        />
+
+                        <div className='flex flex-wrap gap-3 lg:justify-end'>
+                          <button
+                            type='button'
+                            onClick={() =>
+                              setExpandedJobId((current) =>
+                                current === job.id ? null : job.id,
+                              )
+                            }
+                            className='inline-flex cursor-pointer items-center justify-center gap-3 border border-white/14 px-5 py-3 text-xs font-bold uppercase tracking-[0.16em] text-white transition-colors duration-200 hover:border-white/35 hover:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-white/60 focus:ring-offset-2 focus:ring-offset-[hsl(var(--brand-black-800))]'
+                            aria-expanded={isExpanded}
+                          >
+                            Details
+                            <ChevronDown
+                              className={`h-4 w-4 transition-transform duration-200 ${
+                                isExpanded ? 'rotate-180' : ''
+                              }`}
+                            />
+                          </button>
+                          <button
+                            type='button'
+                            onClick={() => handleApplyNow(job)}
+                            className='inline-flex cursor-pointer items-center justify-center gap-3 border border-[hsl(var(--brand-gold))] bg-[hsl(var(--brand-cream))] px-5 py-3 text-xs font-bold uppercase tracking-[0.16em] text-[hsl(var(--brand-black))] transition-colors duration-200 hover:bg-[hsl(var(--brand-yellow))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--brand-gold))] focus:ring-offset-2 focus:ring-offset-[hsl(var(--brand-black-800))]'
+                          >
+                            Apply
+                            <ArrowRight className='h-4 w-4' />
+                          </button>
+                        </div>
                       </div>
 
                       <AnimatePresence>
@@ -429,274 +473,373 @@ const Careers = () => {
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.28 }}
-                            className='overflow-hidden border-t border-border px-6 pb-6'
+                            transition={{ duration: 0.25 }}
+                            className='overflow-hidden border-t border-white/12'
                           >
-                            <p className='mt-4 mb-5 text-muted-foreground'>
-                              {job.description}
-                            </p>
-                            <Button
-                              variant='default'
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                handleApplyNow(job);
-                              }}
-                            >
-                              Apply Now
-                            </Button>
+                            <div className='grid gap-6 p-5 lg:grid-cols-[minmax(0,1fr)_18rem] lg:p-6'>
+                              {descriptionBullets.length > 0 ? (
+                                <ul className='grid gap-3 text-sm leading-7 text-white/70'>
+                                  {descriptionBullets.map(
+                                    (bullet, itemIndex) => (
+                                      <li
+                                        key={`${job.id}-description-${itemIndex}`}
+                                        className='grid grid-cols-[0.75rem_minmax(0,1fr)] gap-3'
+                                      >
+                                        <span className='mt-[0.7rem] h-1.5 w-1.5 bg-[hsl(var(--brand-gold))]' />
+                                        <span>{bullet}</span>
+                                      </li>
+                                    ),
+                                  )}
+                                </ul>
+                              ) : (
+                                <p className='text-sm leading-7 text-white/66'>
+                                  No description available.
+                                </p>
+                              )}
+                            </div>
                           </motion.div>
                         ) : null}
                       </AnimatePresence>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </section>
-
-      <section id='apply-form' className='section-padding bg-background'>
-        <div ref={formRef} className='container-custom max-w-2xl'>
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className='mb-12 text-center'
-          >
-            <span className='mb-4 block text-sm font-semibold uppercase tracking-wide text-secondary'>
-              Apply Now
-            </span>
-            <h2 className='heading-section text-foreground'>
-              Submit Your Application
-            </h2>
-          </motion.div>
-
-          <motion.form
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            onSubmit={handleSubmit}
-            className='space-y-6'
-          >
-            <div className='rounded-sm border border-border bg-card p-5'>
-              <div className='mb-3 flex items-center justify-between gap-3'>
-                <div>
-                  <p className='text-sm font-medium text-foreground'>
-                    Selected position
-                  </p>
-                  <p className='text-sm text-muted-foreground'>
-                    This is linked to the job you clicked.
-                  </p>
-                </div>
-                {selectedJob ? (
-                  <span className='rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary'>
-                    From open positions
-                  </span>
-                ) : null}
+                    </motion.article>
+                  );
+                })}
               </div>
+            )}
+          </div>
+        </section>
 
-              <Select value={selectedJobId} onValueChange={handleJobSelect}>
-                <SelectTrigger>
-                  <SelectValue placeholder='Select a position' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='general'>General Application</SelectItem>
-                  {openings.map((job) => (
-                    <SelectItem key={job.id} value={job.id}>
-                      {job.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {selectedJob ? (
-                <div className='mt-4 rounded-sm border border-border/60 bg-muted/40 p-4'>
-                  <div className='mb-2 flex items-center gap-2 text-sm font-medium text-foreground'>
-                    <FileText className='h-4 w-4 text-primary' />
-                    {selectedJob.title}
-                  </div>
-                  <div className='flex flex-wrap gap-3 text-sm text-muted-foreground'>
-                    <span>{selectedJob.department}</span>
-                    <span>•</span>
-                    <span>{selectedJob.location}</span>
-                    <span>•</span>
-                    <span>{selectedJob.type}</span>
-                  </div>
-                </div>
-              ) : (
-                <div className='mt-4 rounded-sm border border-dashed border-border/70 bg-muted/30 p-4 text-sm text-muted-foreground'>
-                  You are applying through the general application form.
-                </div>
-              )}
-            </div>
-
-            <div className='grid gap-6 sm:grid-cols-2'>
-              <div>
-                <label className='mb-2 block text-sm font-medium text-foreground'>
-                  Full Name *
-                </label>
-                <Input
-                  required
-                  value={formData.name}
-                  onChange={(event) =>
-                    setFormData({ ...formData, name: event.target.value })
-                  }
-                  placeholder='Your full name'
-                />
-              </div>
-              <div>
-                <label className='mb-2 block text-sm font-medium text-foreground'>
-                  Email *
-                </label>
-                <Input
-                  type='email'
-                  required
-                  value={formData.email}
-                  onChange={(event) =>
-                    setFormData({ ...formData, email: event.target.value })
-                  }
-                  placeholder='your@email.com'
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className='mb-2 block text-sm font-medium text-foreground'>
-                Phone *
-              </label>
-              <div className='flex gap-3'>
-                <Select
-                  value={selectedCountryCode}
-                  onValueChange={setSelectedCountryCode}
-                >
-                  <SelectTrigger className='w-[160px] px-3'>
-                    {COUNTRIES.find((c) => c.code === selectedCountryCode) && (
-                      <span className='inline-flex items-center'>
-                        <i
-                          className={`fi fi-${
-                            COUNTRIES.find(
-                              (c) => c.code === selectedCountryCode,
-                            )?.isoCode
-                          } h-5 w-5 rounded-sm mr-2`}
-                        />
-                        <span>{selectedCountryCode}</span>
-                      </span>
-                    )}
-                  </SelectTrigger>
-                  <SelectContent>
-                    {COUNTRIES.map((country) => (
-                      <SelectItem
-                        key={`${country.code}-${country.name}`}
-                        value={country.code}
-                      >
-                        <span className='inline-flex items-center'>
-                          <i
-                            className={`fi fi-${country.isoCode} h-5 w-5 rounded-sm mr-2`}
-                          />
-                          <span>{country.code}</span>
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Input
-                  type='tel'
-                  required
-                  value={formData.phone}
-                  onChange={(event) =>
-                    setFormData({ ...formData, phone: event.target.value })
-                  }
-                  placeholder={`${selectedCountryCode.replace('+', '')}xxxxxxxxxx`}
-                  className='flex-1'
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className='mb-2 block text-sm font-medium text-foreground'>
-                Cover Letter
-              </label>
-              <Textarea
-                value={formData.message}
-                onChange={(event) =>
-                  setFormData({ ...formData, message: event.target.value })
-                }
-                placeholder="Tell us about yourself and why you'd be a great fit..."
-                rows={5}
-              />
-            </div>
-
-            <div>
-              <label className='mb-2 block text-sm font-medium text-foreground'>
-                Upload CV *
-              </label>
-              <div
-                className={`rounded-sm border-2 border-dashed p-8 text-center transition-colors ${
-                  isDraggingCv ? 'border-primary bg-primary/5' : 'border-border'
-                }`}
-                onDragLeave={handleDragLeave}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
+        <section className='bg-[hsl(var(--brand-black))] py-12 sm:py-16 lg:py-20'>
+          <div className='container-custom max-w-[96rem]'>
+            <div className='grid gap-10 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:items-start'>
+              <motion.aside
+                initial={{ opacity: 0, x: -28 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, amount: 0.18 }}
+                transition={{ duration: 0.62, ease: [0.22, 1, 0.36, 1] }}
+                className='lg:sticky lg:top-28'
               >
-                <input
-                  ref={fileInputRef}
-                  accept='.pdf,.doc,.docx'
-                  className='hidden'
-                  id='cv-upload'
-                  type='file'
-                  onChange={handleFileChange}
-                />
-                <label
-                  htmlFor='cv-upload'
-                  className='flex cursor-pointer flex-col items-center gap-3'
-                >
-                  <div className='flex h-14 w-14 items-center justify-center rounded-full bg-primary/10'>
-                    <Upload className='h-6 w-6 text-primary' />
-                  </div>
-                  <div>
-                    <p className='text-sm text-muted-foreground'>
-                      Drag and drop your CV here, or click to browse
-                    </p>
-                    <p className='mt-1 text-xs text-muted-foreground'>
-                      PDF, DOC, DOCX. Max size 20 MB.
-                    </p>
-                  </div>
-                </label>
+                <p className='mb-4 text-xs font-semibold uppercase tracking-[0.24em] text-white/48'>
+                  Candidate Experience
+                </p>
+                <h2 className='break-words text-3xl font-bold uppercase tracking-[0.08em] text-[hsl(var(--brand-gold))] sm:text-4xl md:text-5xl'>
+                  Apply once. Make it count.
+                </h2>
+                <p className='mt-5 max-w-xl text-sm leading-7 text-white/62'>
+                  Choose a role, upload your CV, and add context that helps HR
+                  understand where your experience can create value.
+                </p>
 
-                {cvFile ? (
-                  <div className='mt-5 flex items-center justify-between gap-4 rounded-sm border border-border bg-background px-4 py-3 text-left'>
-                    <div className='min-w-0'>
-                      <p className='truncate text-sm font-medium text-foreground'>
-                        {cvFile.name}
+                <div className='mt-8 grid gap-3'>
+                  {benefits.map((benefit) => (
+                    <div
+                      key={benefit}
+                      className='flex items-center gap-3 border border-white/10 bg-white/[0.03] p-4 text-sm font-medium text-white/78'
+                    >
+                      <Check className='h-4 w-4 shrink-0 text-[hsl(var(--brand-gold))]' />
+                      {benefit}
+                    </div>
+                  ))}
+                </div>
+              </motion.aside>
+
+              <motion.div
+                ref={formRef}
+                id='apply-form'
+                initial={{ opacity: 0, y: 28 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.12 }}
+                transition={{ duration: 0.62, ease: [0.22, 1, 0.36, 1] }}
+                className='overflow-hidden border border-[hsl(var(--brand-gold)/0.24)] bg-[hsl(var(--brand-cream))] text-[hsl(var(--brand-black))] shadow-[0_1.75rem_4rem_rgba(0,0,0,0.28)]'
+              >
+                <div className='grid border-b border-[hsl(var(--brand-black)/0.12)] bg-white/48 lg:grid-cols-[minmax(0,1fr)_16rem]'>
+                  <div className='p-5 sm:p-7 lg:p-8'>
+                    <p className='mb-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[hsl(var(--brand-black)/0.58)]'>
+                      <Send className='h-4 w-4 text-[hsl(var(--brand-gold))]' />
+                      Job Application
+                    </p>
+                    <h2 className='max-w-2xl text-3xl font-bold uppercase leading-[0.98] tracking-[0.06em] text-[hsl(var(--brand-black))] sm:text-4xl'>
+                      Send the essentials.
+                    </h2>
+                    <p className='mt-4 max-w-2xl text-sm leading-7 text-[hsl(var(--brand-black)/0.62)]'>
+                      A concise application helps HR review your fit quickly.
+                      Choose a role, add your contact details, and attach your
+                      CV.
+                    </p>
+                  </div>
+
+                  <div className='grid border-t border-[hsl(var(--brand-black)/0.12)] bg-[hsl(var(--brand-black))] p-5 text-white lg:border-l lg:border-t-0 lg:p-6'>
+                    <p className='text-[0.68rem] font-bold uppercase tracking-[0.18em] text-white/46'>
+                      File rules
+                    </p>
+                    <div className='mt-5 self-end'>
+                      <p className='text-2xl font-bold text-[hsl(var(--brand-gold))]'>
+                        20MB
                       </p>
-                      <p className='text-xs text-muted-foreground'>
-                        {(cvFile.size / (1024 * 1024)).toFixed(2)} MB
+                      <p className='mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-white/58'>
+                        PDF / DOC / DOCX
                       </p>
                     </div>
-                    <button
-                      type='button'
-                      className='inline-flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary'
-                      onClick={clearCvFile}
-                    >
-                      <X className='h-4 w-4' />
-                    </button>
                   </div>
-                ) : null}
-              </div>
-            </div>
+                </div>
 
-            <AnimatedPillButton
-              type='submit'
-              label={isSubmitting ? 'Submitting...' : 'Submit Application'}
-              tone='brand'
-              className='w-full disabled:cursor-not-allowed disabled:opacity-50'
-              labelClassName='text-sm md:text-base'
-              disabled={isSubmitting}
-            />
-          </motion.form>
-        </div>
-      </section>
+                <form onSubmit={handleSubmit} className='p-5 sm:p-7 lg:p-8'>
+                  <div className='grid gap-x-6 gap-y-5 lg:grid-cols-2'>
+                    <div className='lg:col-span-2'>
+                      <label
+                        htmlFor='career-position'
+                        className='mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[hsl(var(--brand-black)/0.56)]'
+                      >
+                        Applying for
+                      </label>
+                      <Select
+                        value={selectedJobId}
+                        onValueChange={handleJobSelect}
+                      >
+                        <SelectTrigger
+                          id='career-position'
+                          className='h-14 border-[hsl(var(--brand-black)/0.18)] bg-white px-4 text-[hsl(var(--brand-black))] shadow-sm focus:ring-[hsl(var(--brand-gold))]'
+                        >
+                          <SelectValue placeholder='Select a position' />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value='general'>
+                            General Application
+                          </SelectItem>
+                          {openings.map((job) => (
+                            <SelectItem key={job.id} value={job.id}>
+                              {job.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <div className='mt-3 border-l-2 border-[hsl(var(--brand-gold))] bg-white/58 px-4 py-3'>
+                        {selectedJob ? (
+                          <>
+                            <div className='mb-2 flex items-center gap-2 text-sm font-semibold text-[hsl(var(--brand-black))]'>
+                              <FileText className='h-4 w-4 text-[hsl(var(--brand-gold))]' />
+                              {selectedJob.title}
+                            </div>
+                            <div className='flex flex-wrap gap-3 text-sm text-[hsl(var(--brand-black)/0.58)]'>
+                              <span>{selectedJob.department}</span>
+                              <span>/</span>
+                              <span>{selectedJob.location}</span>
+                              <span>/</span>
+                              <span>{selectedJob.type}</span>
+                            </div>
+                          </>
+                        ) : (
+                          <p className='text-sm leading-6 text-[hsl(var(--brand-black)/0.58)]'>
+                            General applications are reviewed for future role
+                            matches.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor='career-name'
+                        className='mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[hsl(var(--brand-black)/0.56)]'
+                      >
+                        Full name *
+                      </label>
+                      <Input
+                        id='career-name'
+                        required
+                        value={formData.name}
+                        onChange={(event) =>
+                          setFormData({
+                            ...formData,
+                            name: event.target.value,
+                          })
+                        }
+                        placeholder='Your full name'
+                        autoComplete='name'
+                        className='h-14 border-[hsl(var(--brand-black)/0.16)] bg-white px-4 text-[hsl(var(--brand-black))] shadow-sm placeholder:text-[hsl(var(--brand-black)/0.38)] focus-visible:ring-[hsl(var(--brand-gold))]'
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor='career-email'
+                        className='mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[hsl(var(--brand-black)/0.56)]'
+                      >
+                        Email *
+                      </label>
+                      <Input
+                        id='career-email'
+                        type='email'
+                        required
+                        value={formData.email}
+                        onChange={(event) =>
+                          setFormData({
+                            ...formData,
+                            email: event.target.value,
+                          })
+                        }
+                        placeholder='name@example.com'
+                        autoComplete='email'
+                        className='h-14 border-[hsl(var(--brand-black)/0.16)] bg-white px-4 text-[hsl(var(--brand-black))] shadow-sm placeholder:text-[hsl(var(--brand-black)/0.38)] focus-visible:ring-[hsl(var(--brand-gold))]'
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor='career-phone'
+                        className='mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[hsl(var(--brand-black)/0.56)]'
+                      >
+                        Phone *
+                      </label>
+                      <Input
+                        id='career-phone'
+                        type='tel'
+                        required
+                        value={formData.phone}
+                        onChange={(event) =>
+                          setFormData({
+                            ...formData,
+                            phone: event.target.value,
+                          })
+                        }
+                        placeholder='Phone number'
+                        autoComplete='tel'
+                        className='h-14 border-[hsl(var(--brand-black)/0.16)] bg-white px-4 text-[hsl(var(--brand-black))] shadow-sm placeholder:text-[hsl(var(--brand-black)/0.38)] focus-visible:ring-[hsl(var(--brand-gold))]'
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor='cv-upload'
+                        className='mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[hsl(var(--brand-black)/0.56)]'
+                      >
+                        Upload CV *
+                      </label>
+                      <div
+                        className={`flex min-h-14 items-center border border-dashed px-4 transition-colors duration-200 ${
+                          isDraggingCv
+                            ? 'border-[hsl(var(--brand-gold))] bg-[hsl(var(--brand-gold)/0.14)]'
+                            : 'border-[hsl(var(--brand-black)/0.18)] bg-white hover:border-[hsl(var(--brand-gold)/0.5)]'
+                        }`}
+                        onDragLeave={handleDragLeave}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop}
+                      >
+                        <input
+                          ref={fileInputRef}
+                          accept='.pdf,.doc,.docx'
+                          className='hidden'
+                          id='cv-upload'
+                          type='file'
+                          onChange={handleFileChange}
+                        />
+                        {cvFile ? (
+                          <div className='flex min-w-0 flex-1 items-center justify-between gap-3'>
+                            <div className='min-w-0'>
+                              <p className='truncate text-sm font-semibold text-[hsl(var(--brand-black))]'>
+                                {cvFile.name}
+                              </p>
+                              <p className='mt-0.5 text-xs text-[hsl(var(--brand-black)/0.52)]'>
+                                {(cvFile.size / (1024 * 1024)).toFixed(2)} MB
+                              </p>
+                            </div>
+                            <button
+                              type='button'
+                              className='inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center border border-[hsl(var(--brand-black)/0.16)] text-[hsl(var(--brand-black)/0.58)] transition-colors duration-200 hover:border-[hsl(var(--brand-gold))] hover:text-[hsl(var(--brand-gold))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--brand-gold))]'
+                              onClick={clearCvFile}
+                              aria-label='Remove selected CV'
+                            >
+                              <X className='h-4 w-4' />
+                            </button>
+                          </div>
+                        ) : (
+                          <label
+                            htmlFor='cv-upload'
+                            className='flex min-w-0 flex-1 cursor-pointer items-center gap-3'
+                          >
+                            <Upload className='h-5 w-5 shrink-0 text-[hsl(var(--brand-gold))]' />
+                            <span className='min-w-0'>
+                              <span className='block truncate text-sm font-semibold text-[hsl(var(--brand-black))]'>
+                                Attach your CV
+                              </span>
+                              <span className='block truncate text-xs text-[hsl(var(--brand-black)/0.52)]'>
+                                PDF, DOC, DOCX. Max 20 MB.
+                              </span>
+                            </span>
+                          </label>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className='lg:col-span-2'>
+                      <label
+                        htmlFor='career-message'
+                        className='mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-[hsl(var(--brand-black)/0.56)]'
+                      >
+                        Note to HR
+                      </label>
+                      <Textarea
+                        id='career-message'
+                        value={formData.message}
+                        onChange={(event) =>
+                          setFormData({
+                            ...formData,
+                            message: event.target.value,
+                          })
+                        }
+                        placeholder='Optional: add your focus area, notice period, or portfolio link.'
+                        rows={4}
+                        className='min-h-28 border-[hsl(var(--brand-black)/0.16)] bg-white px-4 py-3 text-[hsl(var(--brand-black))] shadow-sm placeholder:text-[hsl(var(--brand-black)/0.38)] focus-visible:ring-[hsl(var(--brand-gold))]'
+                      />
+                    </div>
+                  </div>
+
+                  <div className='mt-6 grid gap-4 border-t border-[hsl(var(--brand-black)/0.12)] pt-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center'>
+                    <p className='text-xs leading-6 text-[hsl(var(--brand-black)/0.56)]'>
+                      By submitting, you confirm the information is accurate and
+                      allow Wealth Holding HR to contact you about relevant
+                      opportunities.
+                    </p>
+                    <AnimatedPillButton
+                      type='submit'
+                      label={
+                        isSubmitting ? 'Submitting...' : 'Submit Application'
+                      }
+                      tone='dark'
+                      className='w-full disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto'
+                      labelClassName='text-sm md:text-base'
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        <section className='overflow-hidden bg-[hsl(var(--brand-black-800))] py-10'>
+          <div className='container-custom max-w-[96rem]'>
+            <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+              {journeySteps.map((step, index) => (
+                <div
+                  key={step}
+                  className='flex items-center gap-4 border border-white/10 bg-white/[0.03] p-4'
+                >
+                  <span className='flex h-10 w-10 shrink-0 items-center justify-center border border-[hsl(var(--brand-gold)/0.55)] text-sm font-bold text-[hsl(var(--brand-gold))]'>
+                    {index + 1}
+                  </span>
+                  <div>
+                    <p className='text-sm font-semibold text-white'>{step}</p>
+                    <p className='mt-1 text-xs uppercase tracking-[0.16em] text-white/40'>
+                      Hiring process
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
     </Layout>
   );
 };

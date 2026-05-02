@@ -1,4 +1,11 @@
-import { type FormEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  type FormEvent,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, type Variants } from 'framer-motion';
 import gsap from 'gsap';
@@ -32,6 +39,9 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 gsap.registerPlugin(ScrollTrigger);
 
 const revealViewport = { once: true, amount: 0.18 };
+
+const getPrimaryLocation = (location: string) =>
+  location.split(',')[0]?.trim() || location;
 
 const revealUp: Variants = {
   hidden: { opacity: 0, y: 42, filter: 'blur(10px)' },
@@ -135,6 +145,7 @@ const ProjectDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [masterPlanOpen, setMasterPlanOpen] = useState(false);
+  const [videoInteractive, setVideoInteractive] = useState(false);
   const [leadForm, setLeadForm] = useState({
     name: '',
     phone: '',
@@ -144,8 +155,12 @@ const ProjectDetail = () => {
   const { toast } = useToast();
 
   useSEO({
-    title: project ? `${project.title} | Wealth Holding` : 'Project Detail | Wealth Holding',
-    description: project?.description || 'Explore premium real estate projects by Wealth Holding.'
+    title: project
+      ? `${project.title} | Wealth Holding`
+      : 'Project Detail | Wealth Holding',
+    description:
+      project?.description ||
+      'Explore premium real estate projects by Wealth Holding.',
   });
 
   useEffect(() => {
@@ -208,21 +223,15 @@ const ProjectDetail = () => {
     [project],
   );
 
-  const specsList = useMemo(
-    () =>
-      project?.specifications
-        ? project.specifications
-            .split('\n')
-            .map((item) => item.trim())
-            .filter(Boolean)
-        : [],
-    [project],
-  );
-
   const youtubeEmbedUrl = useMemo(
     () => getYouTubeEmbedUrl(project?.videoUrl),
     [project],
   );
+
+  useEffect(() => {
+    setVideoInteractive(false);
+  }, [youtubeEmbedUrl]);
+
   const directVideoUrl = useMemo(
     () =>
       isDirectVideoUrl(project?.videoUrl)
@@ -278,7 +287,9 @@ const ProjectDetail = () => {
       window.requestAnimationFrame(refresh);
     };
 
-    const images = Array.from(section.querySelectorAll<HTMLImageElement>('img'));
+    const images = Array.from(
+      section.querySelectorAll<HTMLImageElement>('img'),
+    );
 
     images.forEach((image) => {
       if (image.complete) {
@@ -286,7 +297,9 @@ const ProjectDetail = () => {
       }
 
       image.addEventListener('load', refreshAfterLayoutSettles, { once: true });
-      image.addEventListener('error', refreshAfterLayoutSettles, { once: true });
+      image.addEventListener('error', refreshAfterLayoutSettles, {
+        once: true,
+      });
     });
 
     window.addEventListener('resize', refresh);
@@ -394,7 +407,7 @@ const ProjectDetail = () => {
       typeof window !== 'undefined' ? `\n${window.location.href}` : ''
     }`,
   );
-  const projectWhatsappLink = `https://wa.me/201090000000?text=${projectWhatsappMessage}`;
+  const projectWhatsappLink = `https://api.whatsapp.com/send/?phone=201121898883&text=${projectWhatsappMessage}&type=phone_number&app_absent=0`;
 
   return (
     <Layout>
@@ -479,17 +492,21 @@ const ProjectDetail = () => {
               className='mx-auto grid w-full max-w-4xl min-w-0 grid-cols-1 gap-5 text-white sm:grid-cols-3'
             >
               {[
-                { icon: MapPin, value: project.location },
+                { icon: MapPin, value: getPrimaryLocation(project.location) },
                 { icon: Building2, value: project.type },
                 { icon: Star, value: project.status },
               ].map((item) => (
                 <motion.div
                   key={item.value}
                   variants={revealItem}
-                  className='flex flex-col items-center gap-2 text-center'
+                  whileHover={{ y: -6 }}
+                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                  className='group flex cursor-default flex-col items-center gap-2 text-center will-change-transform'
                 >
-                  <item.icon className='h-6 w-6 text-white/85' />
-                  <span className='text-base font-semibold tracking-wide'>
+                  <span className='relative inline-flex h-8 w-8 items-center justify-center'>
+                    <item.icon className='h-6 w-6 text-white/85 transition-transform duration-500 ease-out group-hover:-translate-y-1 group-hover:rotate-[-8deg] group-hover:scale-110' />
+                  </span>
+                  <span className='text-base font-semibold tracking-wide transition-transform duration-500 ease-out group-hover:translate-y-0.5'>
                     {item.value}
                   </span>
                 </motion.div>
@@ -500,13 +517,13 @@ const ProjectDetail = () => {
 
         <section
           ref={detailsSectionRef}
-          className='section-padding bg-[hsl(var(--brand-black-700))]'
+          className='bg-[hsl(var(--brand-black-700))] py-8 sm:py-10 lg:py-12'
         >
           <div className='container-custom max-w-[96rem] min-w-0'>
-            <div className='grid min-w-0 gap-10 lg:items-start lg:grid-cols-[minmax(0,1fr)_minmax(18rem,320px)] lg:gap-12 xl:grid-cols-[minmax(0,1fr)_minmax(19rem,340px)]'>
+            <div className='grid min-w-0 gap-8 lg:items-start lg:grid-cols-[minmax(0,1fr)_minmax(18rem,320px)] lg:gap-10 xl:grid-cols-[minmax(0,1fr)_minmax(19rem,340px)]'>
               <div
                 ref={detailsContentRef}
-                className='min-w-0 space-y-10 lg:space-y-14'
+                className='min-w-0 space-y-7 lg:space-y-9'
               >
                 <motion.div
                   initial='hidden'
@@ -514,15 +531,15 @@ const ProjectDetail = () => {
                   viewport={revealViewport}
                   variants={revealUp}
                 >
-                  <section className='relative overflow-hidden px-4 py-10 sm:px-8 sm:py-12 lg:px-10'>
-                    <div className='flex max-w-5xl min-w-0 flex-col gap-8'>
+                  <section className='relative overflow-hidden px-4 py-6 sm:px-8 sm:py-8 lg:px-10'>
+                    <div className='flex max-w-5xl min-w-0 flex-col gap-5'>
                       <div>
-                        <h2 className='break-words text-4xl font-black uppercase tracking-[0.08em] text-[hsl(var(--brand-gold))] sm:text-5xl md:text-7xl'>
+                        <h2 className='break-words text-3xl font-bold uppercase tracking-[0.08em] text-[hsl(var(--brand-gold))] sm:text-4xl md:text-5xl'>
                           Overview
                         </h2>
                       </div>
 
-                      <div className='border-t border-[hsl(var(--brand-gold)/0.55)] pt-8'>
+                      <div className='border-t border-[hsl(var(--brand-gold)/0.55)] pt-5'>
                         <p className='whitespace-pre-line text-lg leading-8 text-white/82'>
                           {project.description}
                         </p>
@@ -555,7 +572,11 @@ const ProjectDetail = () => {
                   viewport={revealViewport}
                   variants={revealUp}
                 >
-                  <PaymentPlanCard paymentPlan={project.paymentPlan} />
+                  <ProjectLocationSection
+                    imageUrl={locationImageUrl}
+                    locations={project.nearbyLocations}
+                    directionsUrl={project.locationMapUrl}
+                  />
                 </motion.div>
 
                 <motion.div
@@ -564,11 +585,7 @@ const ProjectDetail = () => {
                   viewport={revealViewport}
                   variants={revealUp}
                 >
-                  <ProjectLocationSection
-                    imageUrl={locationImageUrl}
-                    locations={project.nearbyLocations}
-                    directionsUrl={project.locationMapUrl}
-                  />
+                  <PaymentPlanCard paymentPlan={project.paymentPlan} />
                 </motion.div>
 
                 {masterPlanUrl ? (
@@ -584,7 +601,7 @@ const ProjectDetail = () => {
                         variants={revealLeft}
                         className='flex items-center justify-center lg:min-h-[30rem]'
                       >
-                        <h2 className='break-words text-center text-4xl font-black uppercase tracking-[0.08em] text-[hsl(var(--brand-gold))] sm:text-5xl lg:[writing-mode:vertical-rl] lg:rotate-180 lg:text-6xl xl:text-7xl'>
+                        <h2 className='break-words text-center text-3xl font-bold uppercase tracking-[0.08em] text-[hsl(var(--brand-gold))] sm:text-4xl lg:[writing-mode:vertical-rl] lg:rotate-180 lg:text-5xl xl:text-6xl'>
                           Masterplan
                         </h2>
                       </motion.div>
@@ -609,6 +626,75 @@ const ProjectDetail = () => {
                   </motion.section>
                 ) : null}
 
+                {youtubeEmbedUrl ? (
+                  <motion.section
+                    initial='hidden'
+                    whileInView='visible'
+                    viewport={revealViewport}
+                    variants={revealGroup}
+                    className='relative min-w-0 overflow-hidden bg-[hsl(var(--brand-black-800))]'
+                  >
+                    <div className='pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[hsl(var(--brand-gold)/0.75)] to-transparent' />
+                    <div className='grid min-w-0 gap-8 px-4 py-8 sm:px-8 sm:py-10 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:items-center lg:px-10 lg:py-12 xl:gap-12'>
+                      <motion.div
+                        variants={revealItem}
+                        className='relative z-10 min-w-0'
+                      >
+                        <h2 className='break-words text-3xl font-bold uppercase leading-[0.95]  text-white sm:text-4xl lg:text-5xl xl:text-6xl'>
+                          Experience {project.title}
+                        </h2>
+                        <p className='mt-5 max-w-xl text-sm leading-7 text-white/62 sm:text-base'>
+                          Step inside the project through a guided visual tour
+                          focused on the architecture, setting, and lifestyle
+                          details that define the development.
+                        </p>
+                      </motion.div>
+
+                      <motion.div variants={revealItem} className='min-w-0'>
+                        <div className='group relative min-w-0 overflow-hidden border border-white/12 bg-black shadow-[0_2rem_5rem_rgba(0,0,0,0.42)]'>
+                          <div
+                            className='relative aspect-video w-full'
+                            onMouseLeave={() => setVideoInteractive(false)}
+                          >
+                            <iframe
+                              src={youtubeEmbedUrl}
+                              title={`${project.title} walkthrough video`}
+                              className={`h-full w-full ${
+                                videoInteractive ? '' : 'pointer-events-none'
+                              }`}
+                              loading='lazy'
+                              allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
+                              allowFullScreen
+                            />
+                            {!videoInteractive ? (
+                              <button
+                                type='button'
+                                className='absolute inset-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white/60'
+                                aria-label='Enable video controls'
+                                onClick={() => setVideoInteractive(true)}
+                              />
+                            ) : null}
+                          </div>
+                          <div className='flex flex-col gap-3 border-t border-white/10 bg-[hsl(var(--brand-black-900)/0.88)] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5'>
+                            <div className='min-w-0'>
+                              <p className='truncate text-sm font-semibold text-white'>
+                                {project.title} walkthrough
+                              </p>
+                              <p className='mt-1 text-xs uppercase tracking-[0.18em] text-white/42'>
+                                HD project tour
+                              </p>
+                            </div>
+                            <div className='flex shrink-0 items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[hsl(var(--brand-gold))]'>
+                              <PlayCircle className='h-4 w-4' />
+                              Watch Full Video
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    </div>
+                  </motion.section>
+                ) : null}
+
                 <motion.div
                   initial='hidden'
                   whileInView='visible'
@@ -618,67 +704,23 @@ const ProjectDetail = () => {
                   <ProjectGallery images={galleryImages} />
                 </motion.div>
 
-                {youtubeEmbedUrl ? (
-                  <motion.section
-                    initial='hidden'
-                    whileInView='visible'
-                    viewport={revealViewport}
-                    variants={revealGroup}
-                    className='space-y-6'
-                  >
-                    <motion.div
-                      variants={revealItem}
-                      className='flex items-center gap-3'
-                    >
-                      <div className='flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary'>
-                        <PlayCircle className='h-5 w-5' />
-                      </div>
-                      <div>
-                        <p className='text-xs font-semibold uppercase tracking-[0.24em] text-primary'>
-                          Walkthrough
-                        </p>
-                        <h2 className='heading-card text-foreground'>Video</h2>
-                      </div>
-                    </motion.div>
-
-                    <motion.div
-                      variants={revealItem}
-                      className='overflow-hidden rounded-3xl border border-border/60 bg-card'
-                    >
-                      <div className='aspect-video w-full'>
-                        <iframe
-                          src={youtubeEmbedUrl}
-                          title={`${project.title} video`}
-                          className='h-full w-full'
-                          allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
-                          allowFullScreen
-                        />
-                      </div>
-                    </motion.div>
-                  </motion.section>
-                ) : null}
-
-                {specsList.length > 0 || amenitiesList.length > 0 ? (
+                {amenitiesList.length > 0 ? (
                   <motion.div
                     initial='hidden'
                     whileInView='visible'
                     viewport={revealViewport}
                     variants={revealUp}
                   >
-                    <section className='relative min-w-0 overflow-hidden px-4 py-10 sm:px-8 sm:py-12 lg:px-10'>
-                      <div className='mb-10 grid min-w-0 gap-4 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1fr)] md:items-end'>
+                    <section className='relative min-w-0 overflow-hidden px-4 py-7 sm:px-8 sm:py-9 lg:px-10'>
+                      <div className='mb-7 grid min-w-0 gap-4 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1fr)] md:items-end'>
                         <div className='min-w-0'>
                           <p className='mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-white/55'>
                             Project Details
                           </p>
-                          <h2 className='break-words text-3xl font-black uppercase tracking-[0.08em] text-[hsl(var(--brand-gold))] sm:text-5xl md:text-6xl'>
-                            Specs & Amenities
+                          <h2 className='break-words text-3xl font-bold uppercase tracking-[0.08em] text-[hsl(var(--brand-gold))] sm:text-4xl md:text-5xl'>
+                            Facilities & Amenities
                           </h2>
                         </div>
-                        <p className='max-w-2xl text-sm leading-7 text-white/62 md:justify-self-end'>
-                          A quick look at the practical details and everyday
-                          comforts that shape the project experience.
-                        </p>
                       </div>
 
                       <motion.div
@@ -686,73 +728,22 @@ const ProjectDetail = () => {
                         whileInView='visible'
                         viewport={revealViewport}
                         variants={revealGroup}
-                        className='grid min-w-0 gap-10 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]'
+                        className='grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3'
                       >
-                        {specsList.length > 0 ? (
-                          <motion.section
+                        {amenitiesList.map((amenity, index) => (
+                          <motion.div
+                            key={`${amenity}-${index}`}
                             variants={revealItem}
-                            className='min-w-0 border-t border-[hsl(var(--brand-gold)/0.55)] pt-6'
+                            className='group flex min-h-20 min-w-0 items-center gap-3 border border-white/12 bg-white/[0.03] p-4 transition-all duration-500 ease-out hover:-translate-y-1 hover:border-[hsl(var(--brand-gold)/0.65)] hover:bg-white/[0.06] hover:shadow-[0_1.25rem_2.75rem_rgba(0,0,0,0.24)] sm:gap-4'
                           >
-                            <div className='mb-7 flex items-center justify-between gap-4'>
-                              <h3 className='text-2xl font-medium text-white'>
-                                Specifications
-                              </h3>
-                            </div>
-
-                            <motion.div
-                              variants={revealGroup}
-                              className='grid gap-0'
-                            >
-                              {specsList.map((spec, index) => (
-                                <motion.div
-                                  key={`${spec}-${index}`}
-                                  variants={revealItem}
-                                  className='grid min-w-0 grid-cols-[2.25rem_minmax(0,1fr)] items-start gap-3 border-b border-white/12 py-5 sm:grid-cols-[3rem_minmax(0,1fr)] sm:gap-4'
-                                >
-                                  <span className='pt-0.5 text-sm font-semibold tabular-nums text-[hsl(var(--brand-gold))]'>
-                                    {String(index + 1).padStart(2, '0')}
-                                  </span>
-                                  <p className='min-w-0 break-words text-base leading-7 text-white/85'>
-                                    {spec}
-                                  </p>
-                                </motion.div>
-                              ))}
-                            </motion.div>
-                          </motion.section>
-                        ) : null}
-
-                        {amenitiesList.length > 0 ? (
-                          <motion.section
-                            variants={revealItem}
-                            className='relative min-w-0 border-t border-white/18 pt-6'
-                          >
-                            <div className='relative mb-7 flex items-center justify-between gap-4'>
-                              <h3 className='text-2xl font-medium text-white'>
-                                Amenities
-                              </h3>
-                            </div>
-
-                            <motion.div
-                              variants={revealGroup}
-                              className='relative grid min-w-0 gap-3 sm:grid-cols-2'
-                            >
-                              {amenitiesList.map((amenity, index) => (
-                                <motion.div
-                                  key={`${amenity}-${index}`}
-                                  variants={revealItem}
-                                  className='group flex min-h-20 min-w-0 items-center gap-3 border border-white/12 bg-white/[0.03] p-4 transition-all duration-500 ease-out hover:-translate-y-1 hover:border-[hsl(var(--brand-gold)/0.65)] hover:bg-white/[0.06] hover:shadow-[0_1.25rem_2.75rem_rgba(0,0,0,0.24)] sm:gap-4'
-                                >
-                                  <span className='flex h-9 w-9 shrink-0 items-center justify-center border border-[hsl(var(--brand-gold)/0.58)] text-[hsl(var(--brand-gold))] transition-all duration-500 ease-out group-hover:scale-110 group-hover:bg-[hsl(var(--brand-gold))] group-hover:text-[hsl(var(--brand-black))]'>
-                                    <Check className='h-4 w-4 transition-transform duration-500 ease-out group-hover:rotate-12' />
-                                  </span>
-                                  <span className='min-w-0 break-words text-sm font-medium leading-6 text-white/82 transition-all duration-500 ease-out group-hover:translate-x-1 group-hover:text-white'>
-                                    {amenity}
-                                  </span>
-                                </motion.div>
-                              ))}
-                            </motion.div>
-                          </motion.section>
-                        ) : null}
+                            <span className='flex h-9 w-9 shrink-0 items-center justify-center border border-[hsl(var(--brand-gold)/0.58)] text-[hsl(var(--brand-gold))] transition-all duration-500 ease-out group-hover:scale-110 group-hover:bg-[hsl(var(--brand-gold))] group-hover:text-[hsl(var(--brand-black))]'>
+                              <Check className='h-4 w-4 transition-transform duration-500 ease-out group-hover:rotate-12' />
+                            </span>
+                            <span className='min-w-0 break-words text-sm font-medium leading-6 text-white/82 transition-all duration-500 ease-out group-hover:translate-x-1 group-hover:text-white'>
+                              {amenity}
+                            </span>
+                          </motion.div>
+                        ))}
                       </motion.div>
                     </section>
                   </motion.div>
@@ -771,84 +762,84 @@ const ProjectDetail = () => {
                     variants={revealRight}
                     className='rounded-lg border border-border/60 bg-card p-5 xl:p-6'
                   >
-                  <h3 className='heading-card text-foreground mb-2'>
-                    Inquire About {project.title}
-                  </h3>
-                  <p className='mb-3 text-xs text-muted-foreground'>
-                    Leave your details and our sales team will get in touch.
-                  </p>
-                  <form onSubmit={handleLeadSubmit} className='space-y-3'>
-                    <Input
-                      id='lead-name'
-                      placeholder='Your Name'
-                      value={leadForm.name}
-                      onChange={(event) =>
-                        setLeadForm((current) => ({
-                          ...current,
-                          name: event.target.value,
-                        }))
-                      }
-                      required
-                      autoComplete='name'
-                    />
-                    <Input
-                      id='lead-phone'
-                      placeholder='Phone Number'
-                      value={leadForm.phone}
-                      onChange={(event) =>
-                        setLeadForm((current) => ({
-                          ...current,
-                          phone: event.target.value,
-                        }))
-                      }
-                      required
-                      autoComplete='tel'
-                    />
-                    <Input
-                      id='lead-email'
-                      type='email'
-                      placeholder='Email Address'
-                      value={leadForm.email}
-                      onChange={(event) =>
-                        setLeadForm((current) => ({
-                          ...current,
-                          email: event.target.value,
-                        }))
-                      }
-                      required
-                      autoComplete='email'
-                    />
-                    <AnimatedPillButton
-                      type='submit'
-                      label={leadSubmitting ? 'Sending...' : 'Submit Inquiry'}
-                      tone='brand'
-                      className='w-full border-0 !border-none disabled:cursor-not-allowed disabled:opacity-50'
-                      labelClassName='text-sm'
-                      disabled={leadSubmitting}
-                    />
-                  </form>
-                  <div className='mt-3 flex items-end justify-between gap-3 border-t border-border pt-3'>
-                    <div>
-                      <p className='mb-1 text-xs text-muted-foreground'>
-                        Sales Hotline
-                      </p>
+                    <h3 className='heading-card text-foreground mb-2'>
+                      Inquire About {project.title}
+                    </h3>
+                    <p className='mb-3 text-xs text-muted-foreground'>
+                      Leave your details and our sales team will get in touch.
+                    </p>
+                    <form onSubmit={handleLeadSubmit} className='space-y-3'>
+                      <Input
+                        id='lead-name'
+                        placeholder='Your Name'
+                        value={leadForm.name}
+                        onChange={(event) =>
+                          setLeadForm((current) => ({
+                            ...current,
+                            name: event.target.value,
+                          }))
+                        }
+                        required
+                        autoComplete='name'
+                      />
+                      <Input
+                        id='lead-phone'
+                        placeholder='Phone Number'
+                        value={leadForm.phone}
+                        onChange={(event) =>
+                          setLeadForm((current) => ({
+                            ...current,
+                            phone: event.target.value,
+                          }))
+                        }
+                        required
+                        autoComplete='tel'
+                      />
+                      <Input
+                        id='lead-email'
+                        type='email'
+                        placeholder='Email Address'
+                        value={leadForm.email}
+                        onChange={(event) =>
+                          setLeadForm((current) => ({
+                            ...current,
+                            email: event.target.value,
+                          }))
+                        }
+                        required
+                        autoComplete='email'
+                      />
+                      <AnimatedPillButton
+                        type='submit'
+                        label={leadSubmitting ? 'Sending...' : 'Submit Inquiry'}
+                        tone='light'
+                        className='w-full border-0 !border-none disabled:cursor-not-allowed disabled:opacity-50'
+                        labelClassName='text-sm'
+                        disabled={leadSubmitting}
+                      />
+                    </form>
+                    <div className='mt-3 flex items-end justify-between gap-3 border-t border-border pt-3'>
+                      <div>
+                        <p className='mb-1 text-xs text-muted-foreground'>
+                          Sales Hotline
+                        </p>
+                        <a
+                          href='tel:19640'
+                          className='text-base font-semibold text-foreground transition-colors hover:text-primary'
+                        >
+                          19640
+                        </a>
+                      </div>
                       <a
-                        href='tel:19640'
-                        className='text-base font-semibold text-foreground transition-colors hover:text-primary'
+                        href={projectWhatsappLink}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        aria-label={`Chat with Wealth Holding on WhatsApp about ${project.title}`}
+                        className='inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-green-600 text-white shadow-lg transition-colors hover:bg-green-700'
                       >
-                        19640
+                        <FaWhatsapp className='h-5 w-5' />
                       </a>
                     </div>
-                    <a
-                      href={projectWhatsappLink}
-                      target='_blank'
-                      rel='noopener noreferrer'
-                      aria-label={`Chat with Wealth Holding on WhatsApp about ${project.title}`}
-                      className='inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-green-600 text-white shadow-lg transition-colors hover:bg-green-700'
-                    >
-                      <FaWhatsapp className='h-5 w-5' />
-                    </a>
-                  </div>
                   </motion.div>
                 </div>
               </div>

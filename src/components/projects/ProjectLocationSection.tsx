@@ -103,15 +103,11 @@ export const ProjectLocationSection = ({
       whileInView='visible'
       viewport={revealViewport}
       variants={revealGroup}
-      className='relative min-w-0 overflow-hidden px-4 py-10 sm:px-8 sm:py-12 lg:px-10'
+      className='relative min-w-0 overflow-hidden bg-[hsl(var(--brand-black-800))] px-4 py-7 sm:px-8 sm:py-9 lg:px-10'
     >
-      <div className='mb-8 flex min-w-0 flex-col gap-5 sm:flex-row sm:items-end sm:justify-between'>
+      <div className='mb-6 flex min-w-0 flex-col gap-5 sm:flex-row sm:items-end sm:justify-between'>
         <motion.div variants={revealLeft} className='min-w-0'>
-          <p className='mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-white/55'>
-            <MapPin className='h-4 w-4 text-[hsl(var(--brand-gold))]' />
-            Project Map
-          </p>
-          <h2 className='break-words text-left text-4xl font-black uppercase tracking-[0.08em] text-[hsl(var(--brand-gold))] sm:text-5xl md:text-7xl'>
+          <h2 className='break-words text-left text-3xl font-bold uppercase tracking-[0.08em] text-[hsl(var(--brand-gold))] sm:text-4xl md:text-5xl'>
             Location
           </h2>
         </motion.div>
@@ -133,26 +129,7 @@ export const ProjectLocationSection = ({
         ) : null}
       </div>
 
-      <div className='grid min-w-0 gap-8'>
-        {imageUrl ? (
-          <motion.section variants={revealItem} className='min-w-0 space-y-4'>
-            <button
-              type='button'
-              onClick={() => setLocationMapOpen(true)}
-              className='group relative block w-full min-w-0 overflow-hidden bg-[hsl(var(--brand-black-700))] shadow-[0_22px_70px_rgba(0,0,0,0.42)]'
-            >
-              <img
-                src={imageUrl}
-                alt='Project location'
-                className='aspect-[16/11] w-full object-cover transition duration-500 group-hover:scale-[1.02]'
-              />
-              <span className='absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm'>
-                <Expand className='h-4 w-4' />
-              </span>
-            </button>
-          </motion.section>
-        ) : null}
-
+      <div className='grid min-w-0 gap-6'>
         {sortedLocations.length > 0 ? (
           <motion.div variants={revealGroup} className='min-w-0 space-y-6'>
             <motion.div variants={revealItem} className='min-w-0'>
@@ -208,6 +185,25 @@ export const ProjectLocationSection = ({
               <h3 className='heading-card text-foreground'>Project Location</h3>
             </div>
           </motion.div>
+        ) : null}
+
+        {imageUrl ? (
+          <motion.section variants={revealItem} className='min-w-0 space-y-4'>
+            <button
+              type='button'
+              onClick={() => setLocationMapOpen(true)}
+              className='group relative block w-full min-w-0 cursor-pointer overflow-hidden bg-[hsl(var(--brand-black-700))] shadow-[0_18px_48px_rgba(0,0,0,0.34)]'
+            >
+              <img
+                src={imageUrl}
+                alt='Project location'
+                className='h-[18rem] w-full object-cover transition duration-500 group-hover:scale-[1.02] sm:h-[22rem] lg:h-[34rem]'
+              />
+              <span className='absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm'>
+                <Expand className='h-4 w-4' />
+              </span>
+            </button>
+          </motion.section>
         ) : null}
       </div>
 

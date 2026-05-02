@@ -70,6 +70,10 @@
   text-decoration: none;
 }
 
+.side-menu__hotline-link--large {
+  font-size: 1.2em;
+}
+
 .side-menu__link {
   border: 0;
   padding: 0;

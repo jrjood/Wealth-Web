@@ -5,8 +5,12 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const useGsapAnimations = () => {
+const useGsapAnimations = (enabled = true) => {
   useLayoutEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
     const REVEAL_DELAY_MS = 100;
 
     let removeResizeListener: null | (() => void) = null;
@@ -168,29 +172,6 @@ const useGsapAnimations = () => {
     const initialAnimations = () => {
       const isDesktop = window.matchMedia('(min-width: 768px)').matches;
 
-      gsap.from('#nav', {
-        duration: 1.3,
-        ease: 'power1.out',
-        scrollTrigger: {
-          end: 'top 50%',
-          start: 'top 80%',
-          trigger: '#nav',
-        },
-        y: -90,
-      });
-
-      gsap.from('#menu-btn', {
-        duration: 1.3,
-        ease: 'power1.out',
-        scrollTrigger: {
-          end: 'top 50%',
-          start: 'top 80%',
-          toggleActions: 'play none none none',
-          trigger: '#menu-btn',
-        },
-        y: -90,
-      });
-
       gsap.from('#scroll-btn', {
         duration: 1.2,
         ease: 'power1.out',
@@ -312,7 +293,7 @@ const useGsapAnimations = () => {
           const letters = line.querySelectorAll('.letter');
 
           gsap.to(letters, {
-            delay: lineIndex * 0.3,
+            delay: lineIndex * 0.5,
             duration: 1.1,
             ease: 'power3.out',
             rotate: 0,
@@ -472,7 +453,7 @@ const useGsapAnimations = () => {
       removeLoadListener?.();
       removeResizeListener?.();
     };
-  }, []);
+  }, [enabled]);
 };
 
 export default useGsapAnimations;

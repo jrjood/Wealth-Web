@@ -12,7 +12,7 @@ const quickLinksColumnA = [
   { label: 'About', to: '/about-us' },
   { label: 'Projects', to: '/projects' },
   { label: 'Careers', to: '/careers' },
-  { label: 'Blog', to: '/blog' },
+  // { label: 'Blog', to: '/blog' },
   { label: 'Contact', to: '/contact' },
 ];
 
@@ -23,10 +23,26 @@ const quickLinksColumnB = [
 ];
 
 const socialLinks = [
-  { icon: Facebook, href: 'https://facebook.com', label: 'Facebook' },
-  { icon: Linkedin, href: 'https://linkedin.com', label: 'LinkedIn' },
-  { icon: Instagram, href: 'https://instagram.com', label: 'Instagram' },
-  { icon: Youtube, href: 'https://youtube.com', label: 'YouTube' },
+  {
+    icon: Facebook,
+    href: 'https://www.facebook.com/WealthHolding',
+    label: 'Facebook',
+  },
+  {
+    icon: Linkedin,
+    href: 'https://www.linkedin.com/company/wealth-holding-developments/posts/?feedView=all',
+    label: 'LinkedIn',
+  },
+  {
+    icon: Instagram,
+    href: 'https://www.instagram.com/wealthholding',
+    label: 'Instagram',
+  },
+  {
+    icon: Youtube,
+    href: 'https://www.youtube.com/@wealthholding',
+    label: 'YouTube',
+  },
 ];
 
 const Footer = () => {

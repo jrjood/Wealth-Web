@@ -148,7 +148,7 @@ const OverlayScrollbar = () => {
       }}
     >
       <div
-        className='ml-auto w-2 cursor-grab rounded-full bg-[hsl(var(--brand-red-500))] shadow-[0_0_0_1px_hsl(var(--brand-red-500)/0.15)] transition-transform duration-75 active:cursor-grabbing'
+        className='ml-auto w-2 cursor-grab rounded-full bg-[hsl(var(--brand-cream))] shadow-[0_0_0_1px_hsl(var(--brand-cream)/0.15)] transition-transform duration-75 active:cursor-grabbing'
         style={{
           height: `${thumb.height}px`,
           transform: `translateY(${thumb.offset}px)`,

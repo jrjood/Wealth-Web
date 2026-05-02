@@ -147,11 +147,11 @@ const FutureSection = () => {
       <div className='future-container'>
         <div className='future-grid'>
           <div className='future-left-column'>
-            <div className='future-icon-wrapper reveal-up' data-reveal>
+            {/* <div className='future-icon-wrapper reveal-up' data-reveal>
               <div className='future-icon'>
                 <Sparkle strokeWidth={0} aria-hidden='true' />
               </div>
-            </div>
+            </div> */}
 
             <div className='future-text-content'>
               <h2 className='future-heading reveal-up' data-reveal>

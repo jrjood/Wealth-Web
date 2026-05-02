@@ -11,8 +11,12 @@ import WhatIsWealthSection from '@/components/landing-page/WhatIsWealthSection';
 import useGsapAnimations from '@/hooks/useGsapAnimations';
 import { useSEO } from '@/hooks/useSEO';
 
-function Index() {
-  useGsapAnimations();
+interface IndexProps {
+  revealReady?: boolean;
+}
+
+function Index({ revealReady = true }: IndexProps) {
+  useGsapAnimations(revealReady);
   useSEO({
     title: 'Wealth Holding | Premium Real Estate in Egypt',
     description:
@@ -33,7 +37,7 @@ function Index() {
         {/* <ServicesSection /> */}
         <FeaturedProjectsSection />
         <VideoShowcaseSection />
-        <BlogSection />
+        {/* <BlogSection /> */}
         <SloganSection />
         <Footer />
       </div>

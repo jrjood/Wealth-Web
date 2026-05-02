@@ -54,6 +54,11 @@ const ScrollTextMarque = ({
   }, [delay]);
 
   useEffect(() => {
+    if (!shouldAnimate) {
+      scrollVelocity.set(0);
+      return;
+    }
+
     const source = window.__locoScroll;
 
     if (source) {
@@ -90,7 +95,7 @@ const ScrollTextMarque = ({
     window.addEventListener('scroll', onScroll, { passive: true });
 
     return () => window.removeEventListener('scroll', onScroll);
-  }, [scrollVelocity]);
+  }, [scrollVelocity, shouldAnimate]);
 
   useAnimationFrame((_time, delta) => {
     if (!shouldAnimate || !hasStarted.current) {

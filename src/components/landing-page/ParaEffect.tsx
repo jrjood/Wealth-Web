@@ -26,6 +26,7 @@ function useViewportSize() {
 
 const ParaEffect = () => {
   const sectionRef = useRef<HTMLElement>(null);
+  const [isActive, setIsActive] = useState(false);
   const { height: viewportHeight } = useViewportSize();
 
   const { scrollYProgress } = useScroll({
@@ -48,6 +49,33 @@ const ParaEffect = () => {
   const mountainDepth = Math.min(14, Math.max(6, viewportHeight * 0.014));
   const mountainY = useTransform(smoothProgress, [0, 1], [0, mountainDepth]);
 
+  useEffect(() => {
+    const section = sectionRef.current;
+
+    if (!section) {
+      return;
+    }
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setIsActive(false);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsActive(entry.isIntersecting);
+      },
+      {
+        rootMargin: '320px 0px',
+        threshold: 0,
+      },
+    );
+
+    observer.observe(section);
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section
       ref={sectionRef}
@@ -61,6 +89,7 @@ const ParaEffect = () => {
     >
       <div className='para-effect-marquee para-effect-marquee--front'>
         <ScrollTextMarque
+          animate={isActive}
           baseVelocity={-0.35}
           className='para-effect-marquee-text'
         >
@@ -70,6 +99,7 @@ const ParaEffect = () => {
 
       <div className='para-effect-marquee para-effect-marquee--back'>
         <ScrollTextMarque
+          animate={isActive}
           baseVelocity={0.35}
           className='para-effect-marquee-text para-effect-marquee-text--accent'
         >
@@ -83,7 +113,7 @@ const ParaEffect = () => {
           alt='Office building'
           draggable={false}
           className='para-effect-building'
-          style={{ y: mountainY }}
+          style={{ y: isActive ? mountainY : 0 }}
         />
       </div>
 

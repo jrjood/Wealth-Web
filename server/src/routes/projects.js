@@ -27,6 +27,21 @@ const parseBoolean = (value) =>
 const normalizeString = (value) =>
   typeof value === 'string' ? value.trim() : '';
 
+const getPrimaryLocation = (location) =>
+  normalizeString(location).split(',')[0]?.trim() || normalizeString(location);
+
+const slugifyProjectPart = (value) =>
+  normalizeString(value)
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+const getProjectSlug = (project) =>
+  [slugifyProjectPart(project.title), slugifyProjectPart(getPrimaryLocation(project.location))]
+    .filter(Boolean)
+    .join('-');
+
 const parseJsonArray = (value) => {
   if (Array.isArray(value)) {
     return value;
@@ -254,6 +269,23 @@ const fetchProjectById = async (projectId) => {
   };
 };
 
+const fetchProjectByIdentifier = async (identifier) => {
+  const projectById = await fetchProjectById(identifier);
+
+  if (projectById) {
+    return projectById;
+  }
+
+  const projects = await query(
+    'SELECT id, title, location FROM `Project` ORDER BY createdAt DESC',
+  );
+  const matchingProject = projects.find(
+    (project) => getProjectSlug(project) === identifier,
+  );
+
+  return matchingProject ? fetchProjectById(matchingProject.id) : null;
+};
+
 const syncProjectRelations = async (connection, projectId, payload) => {
   await connection.execute('DELETE FROM `GalleryImage` WHERE projectId = ?', [
     projectId,
@@ -342,10 +374,10 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Public route - Get single project by ID
+// Public route - Get single project by ID or public slug
 router.get('/:id', async (req, res) => {
   try {
-    const project = await fetchProjectById(req.params.id);
+    const project = await fetchProjectByIdentifier(req.params.id);
 
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });

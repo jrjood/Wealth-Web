@@ -7,11 +7,18 @@ type SocialLink = {
 };
 
 const socialLinks: SocialLink[] = [
-  { name: 'Facebook', href: 'https://facebook.com' },
-  { name: 'LinkedIn', href: 'https://linkedin.com' },
-  { name: 'Instagram', href: 'https://instagram.com' },
-  { name: 'YouTube', href: 'https://youtube.com' },
-  { name: 'WhatsApp', href: 'https://wa.me/15061', hasBorder: true },
+  { name: 'Facebook', href: 'https://www.facebook.com/WealthHolding' },
+  {
+    name: 'LinkedIn',
+    href: 'https://www.linkedin.com/company/wealth-holding-developments/posts/?feedView=all',
+  },
+  { name: 'Instagram', href: 'https://www.instagram.com/wealthholding' },
+  { name: 'YouTube', href: 'https://www.youtube.com/@wealthholding' },
+  {
+    name: 'WhatsApp',
+    href: 'https://api.whatsapp.com/send/?phone=201121898883&text&type=phone_number&app_absent=0',
+    hasBorder: true,
+  },
 ];
 
 const SocialLinksSection = () => {

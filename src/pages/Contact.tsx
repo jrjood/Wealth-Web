@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import 'flag-icons/css/flag-icons.min.css';
 import {
   ArrowRight,
   Building2,
@@ -28,29 +27,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useSEO } from '@/hooks/useSEO';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-
-const COUNTRIES = [
-  { name: 'United Arab Emirates', code: '+971', isoCode: 'ae' },
-  { name: 'Saudi Arabia', code: '+966', isoCode: 'sa' },
-  { name: 'Egypt', code: '+20', isoCode: 'eg' },
-  { name: 'Kuwait', code: '+965', isoCode: 'kw' },
-  { name: 'Qatar', code: '+974', isoCode: 'qa' },
-  { name: 'Bahrain', code: '+973', isoCode: 'bh' },
-  { name: 'Oman', code: '+968', isoCode: 'om' },
-  { name: 'Jordan', code: '+962', isoCode: 'jo' },
-  { name: 'Lebanon', code: '+961', isoCode: 'lb' },
-  { name: 'Palestine', code: '+970', isoCode: 'ps' },
-  { name: 'Iraq', code: '+964', isoCode: 'iq' },
-  { name: 'Syria', code: '+963', isoCode: 'sy' },
-  { name: 'United Kingdom', code: '+44', isoCode: 'gb' },
-  { name: 'United States', code: '+1', isoCode: 'us' },
-  { name: 'Canada', code: '+1', isoCode: 'ca' },
-  { name: 'Australia', code: '+61', isoCode: 'au' },
-  { name: 'India', code: '+91', isoCode: 'in' },
-  { name: 'Pakistan', code: '+92', isoCode: 'pk' },
-  { name: 'France', code: '+33', isoCode: 'fr' },
-  { name: 'Germany', code: '+49', isoCode: 'de' },
-];
 
 const contactInfo = [
   {
@@ -86,27 +62,27 @@ const contactInfo = [
 
 const socialLinks = [
   {
-    href: 'https://facebook.com',
+    href: 'https://www.facebook.com/WealthHolding',
     iconClass: 'ri-facebook-fill',
     label: 'Facebook',
   },
   {
-    href: 'https://linkedin.com',
+    href: 'https://www.linkedin.com/company/wealth-holding-developments/posts/?feedView=all',
     iconClass: 'ri-linkedin-fill',
     label: 'LinkedIn',
   },
   {
-    href: 'https://instagram.com',
+    href: 'https://www.instagram.com/wealthholding',
     iconClass: 'ri-instagram-line',
     label: 'Instagram',
   },
   {
-    href: 'https://youtube.com',
+    href: 'https://www.youtube.com/@wealthholding',
     iconClass: 'ri-youtube-fill',
     label: 'YouTube',
   },
   {
-    href: 'https://wa.me/201090000000',
+    href: 'https://api.whatsapp.com/send/?phone=201121898883&text&type=phone_number&app_absent=0',
     iconClass: 'ri-whatsapp-fill',
     label: 'WhatsApp',
   },
@@ -163,11 +139,11 @@ const inputIconClass =
 const Contact = () => {
   useSEO({
     title: 'Contact Us | Wealth Holding',
-    description: 'Get in touch with Wealth Holding. Find our office locations, contact information, or send us a message directly.'
+    description:
+      'Get in touch with Wealth Holding. Find our office locations, contact information, or send us a message directly.',
   });
   const [projects, setProjects] = useState<ProjectOption[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
-  const [selectedCountryCode, setSelectedCountryCode] = useState('+20');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -216,11 +192,6 @@ const Contact = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const trimmedPhone = formData.phone.trim();
-      const phoneWithCountryCode = trimmedPhone.startsWith('+')
-        ? trimmedPhone
-        : `${selectedCountryCode}${trimmedPhone.replace(/^0+/, '')}`;
-
       const response = await fetch(`${API_URL}/api/contact`, {
         method: 'POST',
         headers: {
@@ -228,7 +199,7 @@ const Contact = () => {
         },
         body: JSON.stringify({
           ...formData,
-          phone: phoneWithCountryCode,
+          phone: formData.phone.trim(),
         }),
       });
 
@@ -249,7 +220,6 @@ const Contact = () => {
         projectId: 'general',
         message: '',
       });
-      setSelectedCountryCode('+20');
     } catch (error) {
       toast({
         title: 'Message not sent',
@@ -394,49 +364,8 @@ const Contact = () => {
                     <span className='text-sm font-medium text-white/82'>
                       Phone *
                     </span>
-                    <span className='group flex overflow-hidden rounded-lg border border-white/10 bg-white/[0.045] transition-colors focus-within:border-[hsl(var(--brand-red-500))] focus-within:bg-white/[0.07]'>
-                      <Select
-                        value={selectedCountryCode}
-                        onValueChange={setSelectedCountryCode}
-                      >
-                        <SelectTrigger
-                          aria-label='Country code'
-                          className='h-10 w-[118px] shrink-0 rounded-none border-0 border-r border-white/10 bg-transparent px-3 text-white focus:ring-0 [&>svg]:text-white/45'
-                        >
-                          {COUNTRIES.find(
-                            (country) => country.code === selectedCountryCode,
-                          ) && (
-                            <span className='inline-flex items-center'>
-                              <i
-                                className={`fi fi-${
-                                  COUNTRIES.find(
-                                    (country) =>
-                                      country.code === selectedCountryCode,
-                                  )?.isoCode
-                                } mr-2 h-4 w-5 rounded-sm`}
-                              />
-                              <span className='text-sm'>
-                                {selectedCountryCode}
-                              </span>
-                            </span>
-                          )}
-                        </SelectTrigger>
-                        <SelectContent>
-                          {COUNTRIES.map((country) => (
-                            <SelectItem
-                              key={`${country.code}-${country.name}`}
-                              value={country.code}
-                            >
-                              <span className='inline-flex items-center'>
-                                <i
-                                  className={`fi fi-${country.isoCode} mr-2 h-4 w-5 rounded-sm`}
-                                />
-                                <span>{country.code}</span>
-                              </span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <span className={inputShellClass}>
+                      <Phone className={inputIconClass} />
                       <Input
                         type='tel'
                         required
@@ -444,8 +373,9 @@ const Contact = () => {
                         onChange={(e) =>
                           setFormData({ ...formData, phone: e.target.value })
                         }
-                        placeholder={`${selectedCountryCode.replace('+', '')}xxxxxxxxxx`}
-                        className='min-w-0 flex-1 border-0 bg-transparent px-3 text-white placeholder:text-white/32 focus-visible:ring-0'
+                        placeholder='Phone number'
+                        autoComplete='tel'
+                        className='border-0 bg-transparent pl-11 text-white placeholder:text-white/32 focus-visible:ring-0'
                       />
                     </span>
                   </label>

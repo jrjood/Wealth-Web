@@ -6,9 +6,14 @@ import Lenis from 'lenis';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const useLocomotiveScroll = (pathname: string) => {
+const useLocomotiveScroll = (pathname: string, enabled = true) => {
 
   useEffect(() => {
+    if (!enabled) {
+      window.__locoScroll = undefined;
+      return;
+    }
+
     const lenis = new Lenis({
       duration: 1.15,
       lerp: 0.08,
@@ -73,9 +78,13 @@ const useLocomotiveScroll = (pathname: string) => {
       lenis.destroy();
       window.__locoScroll = undefined;
     };
-  }, []);
+  }, [enabled]);
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
     const parallaxTriggers: ScrollTrigger[] = [];
 
     const initNativeParallax = () => {
@@ -145,7 +154,7 @@ const useLocomotiveScroll = (pathname: string) => {
       parallaxTriggers.forEach((trigger) => trigger.kill());
       parallaxTriggers.length = 0;
     };
-  }, [pathname]);
+  }, [enabled, pathname]);
 };
 
 export default useLocomotiveScroll;

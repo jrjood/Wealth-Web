@@ -55,12 +55,13 @@ function AppRoutes() {
     () => !shouldRenderSplash,
   );
 
-  useLocomotiveScroll(displayLocation.pathname);
   const previousShouldRenderSplashRef = useRef(shouldRenderSplash);
   const isContactPage = location.pathname === '/contact';
   const isProjectDetailPage = /^\/projects\/[^/]+$/.test(location.pathname);
   const shouldRenderFloatingTalkToSales =
     !isAdminRoute && !isContactPage && !isProjectDetailPage;
+
+  useLocomotiveScroll(displayLocation.pathname, !isAdminRoute);
 
   useEffect(() => {
     setIsMenuOpen(false);
@@ -87,6 +88,18 @@ function AppRoutes() {
       document.body.style.overflow = '';
     };
   }, [isMenuOpen]);
+
+  useEffect(() => {
+    if (!shouldRenderSplash) {
+      return;
+    }
+
+    document.body.style.overflow = isSplashComplete ? '' : 'hidden';
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isSplashComplete, shouldRenderSplash]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -135,13 +148,20 @@ function AppRoutes() {
     <>
       <ScrollToTop />
       {shouldRenderSplash ? (
-        <SplashScreen onComplete={() => setIsSplashComplete(true)} />
+        <SplashScreen onFinish={() => setIsSplashComplete(true)} />
       ) : null}
       <LoadingScreen
         isLoading={shouldRenderSplash && isLoading}
       />
       {!isAdminRoute ? (
-        <>
+        <div
+          className={`transition-opacity duration-300 ease-out ${
+            isSplashComplete
+              ? 'opacity-100'
+              : 'pointer-events-none opacity-0'
+          }`}
+          aria-hidden={!isSplashComplete}
+        >
           <MenuButton
             isOpen={isMenuOpen}
             onToggle={() => setIsMenuOpen((current) => !current)}
@@ -166,8 +186,9 @@ function AppRoutes() {
               />
             </div>
           ) : null}
-        </>
-      ) : (
+        </div>
+      ) : null}
+      {isAdminRoute ? (
         <header className='sticky top-0 z-30 flex h-20 items-center border-b border-white/10 bg-[hsl(var(--brand-black))] px-4 md:px-8'>
           <a href='/' aria-label='Go to homepage'>
             <img
@@ -177,10 +198,20 @@ function AppRoutes() {
             />
           </a>
         </header>
-      )}
-      {isSplashComplete ? (
+      ) : null}
+      <div
+        className={
+          shouldRenderSplash && !isSplashComplete
+            ? 'pointer-events-none'
+            : undefined
+        }
+        aria-hidden={shouldRenderSplash && !isSplashComplete}
+      >
         <Routes location={displayLocation}>
-          <Route path='/' element={<Index />} />
+          <Route
+            path='/'
+            element={<Index revealReady={!shouldRenderSplash || isSplashComplete} />}
+          />
           <Route path='/about-us' element={<About />} />
           <Route path='/projects' element={<Projects />} />
           <Route path='/projects/:slug' element={<ProjectDetail />} />
@@ -247,7 +278,7 @@ function AppRoutes() {
           />
           <Route path='*' element={<NotFound />} />
         </Routes>
-      ) : null}
+      </div>
     </>
   );
 }

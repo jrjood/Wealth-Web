@@ -1,5 +1,5 @@
 import '@/styles/components/SideMenu.css';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 type SideMenuProps = {
   isOpen: boolean;
@@ -11,47 +11,39 @@ const menuItems = [
   { label: 'About', path: '/about-us' },
   { label: 'Projects', path: '/projects' },
   { label: 'Careers', path: '/careers' },
-  { label: 'Blog', path: '/blog' },
+  // { label: 'Blog', path: '/blog' },
   { label: 'Contact', path: '/contact' },
 ];
 
 const socialItems = [
   {
-    href: 'https://facebook.com',
+    href: 'https://www.facebook.com/WealthHolding',
     iconClass: 'ri-facebook-fill',
     label: 'Facebook',
   },
   {
-    href: 'https://linkedin.com',
+    href: 'https://www.linkedin.com/company/wealth-holding-developments/posts/?feedView=all',
     iconClass: 'ri-linkedin-fill',
     label: 'LinkedIn',
   },
   {
-    href: 'https://instagram.com',
+    href: 'https://www.instagram.com/wealthholding',
     iconClass: 'ri-instagram-line',
     label: 'Instagram',
   },
   {
-    href: 'https://youtube.com',
+    href: 'https://www.youtube.com/@wealthholding',
     iconClass: 'ri-youtube-fill',
     label: 'YouTube',
   },
   {
-    href: 'https://wa.me/15061',
+    href: 'https://api.whatsapp.com/send/?phone=201121898883&text&type=phone_number&app_absent=0',
     iconClass: 'ri-whatsapp-fill',
     label: 'WhatsApp',
   },
 ];
 
 const SideMenu = ({ isOpen, onClose }: SideMenuProps) => {
-  const navigate = useNavigate();
-
-  const handleNavigate = (path: string) => {
-    navigate(path);
-
-    onClose();
-  };
-
   return (
     <div
       className={`side-menu ${isOpen ? 'is-open' : ''}`}
@@ -68,20 +60,22 @@ const SideMenu = ({ isOpen, onClose }: SideMenuProps) => {
         <div className='side-menu__inner'>
           <nav className='side-menu__nav'>
             {menuItems.map((item) => (
-              <button
+              <Link
                 key={item.label}
-                type='button'
+                to={item.path}
                 className='side-menu__link'
-                onClick={() => handleNavigate(item.path)}
+                onClick={onClose}
               >
                 {item.label}
-              </button>
+              </Link>
             ))}
           </nav>
 
           <div className='side-menu__hotline'>
             <span className='side-menu__hotline-label'>Hotline</span>
-            <span className='side-menu__hotline-link'>19640</span>
+            <span className='side-menu__hotline-link'>
+              19<span className='side-menu__hotline-link--large'>6</span>40
+            </span>
           </div>
 
           <div className='side-menu__socials'>

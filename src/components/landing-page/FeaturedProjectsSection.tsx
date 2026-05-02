@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import '@/styles/sections/FeaturedProjectsSection.css';
 import { resolveMediaUrl } from '@/lib/media';
+import { getProjectSlug } from '@/lib/projectSlug';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const AUTOPLAY_DELAY = 5000;
@@ -36,29 +37,63 @@ type RawFeaturedProject = {
 
 const formatProjectNumber = (value: number) => String(value).padStart(2, '0');
 
+const getPrimaryLocation = (location: string) =>
+  location.split(',')[0]?.trim() || '';
+
 const AnimatedProjectTitle = ({
   title,
   variant,
 }: {
   title: string;
   variant: 'in' | 'out';
-}) => (
-  <span
-    className={`featured-projects-title-line featured-projects-title-line-${variant}`}
-  >
-    <span className='featured-projects-title-text'>
-      {Array.from(title).map((character, index) => (
-        <span
-          key={`${variant}-${character}-${index}`}
-          className='featured-projects-title-char'
-          style={{ '--char-index': index } as CSSProperties}
-        >
-          {character === ' ' ? '\u00A0' : character}
-        </span>
-      ))}
+}) => {
+  let characterIndex = 0;
+
+  return (
+    <span
+      className={`featured-projects-title-line featured-projects-title-line-${variant}`}
+    >
+      <span className='featured-projects-title-text'>
+        {title.split(/(\s+)/).map((part, partIndex) => {
+          if (/^\s+$/.test(part)) {
+            return (
+              <span
+                key={`${variant}-space-${partIndex}`}
+                className='featured-projects-title-space'
+              >
+                {' '}
+              </span>
+            );
+          }
+
+          return (
+            <span
+              key={`${variant}-word-${part}-${partIndex}`}
+              className='featured-projects-title-word'
+            >
+              {Array.from(part).map((character) => {
+                const currentCharacterIndex = characterIndex;
+                characterIndex += 1;
+
+                return (
+                  <span
+                    key={`${variant}-${character}-${currentCharacterIndex}`}
+                    className='featured-projects-title-char'
+                    style={
+                      { '--char-index': currentCharacterIndex } as CSSProperties
+                    }
+                  >
+                    {character}
+                  </span>
+                );
+              })}
+            </span>
+          );
+        })}
+      </span>
     </span>
-  </span>
-);
+  );
+};
 
 const FeaturedProjectsSection = () => {
   const [featuredProjects, setFeaturedProjects] = useState<FeaturedProject[]>(
@@ -302,54 +337,58 @@ const FeaturedProjectsSection = () => {
         </div>
 
         <div className='featured-projects-controls'>
-          <div className='featured-projects-control-row'>
-            <button
-              type='button'
-              className='featured-projects-arrow'
-              onClick={goPrevious}
-              disabled={!hasMultipleProjects}
-              aria-label='Previous featured project'
-            >
-              <ChevronLeft aria-hidden='true' />
-            </button>
+          <div className='featured-projects-controls-panel'>
+            <div className='featured-projects-controls-head'>
+              <span className='featured-projects-counter'>
+                <span className='featured-projects-counter-current'>
+                  <span
+                    key={`counter-current-${currentProjectNumber}-${progressKey}`}
+                    className='featured-projects-counter-current-value'
+                  >
+                    {currentProjectNumber}
+                  </span>
+                </span>
+                <span className='featured-projects-counter-separator'>/</span>
+                <span className='featured-projects-counter-total'>
+                  <span className='featured-projects-counter-total-value'>
+                    {totalProjectNumber}
+                  </span>
+                </span>
+              </span>
 
-            <span className='featured-projects-counter'>
-              <span className='featured-projects-counter-current'>
-                <span
-                  key={`counter-current-${currentProjectNumber}-${progressKey}`}
-                  className='featured-projects-counter-current-value'
+              <div className='featured-projects-control-row'>
+                <button
+                  type='button'
+                  className='featured-projects-arrow'
+                  onClick={goPrevious}
+                  disabled={!hasMultipleProjects}
+                  aria-label='Previous featured project'
                 >
-                  {currentProjectNumber}
-                </span>
-              </span>
-              <span className='featured-projects-counter-separator'>/</span>
-              <span className='featured-projects-counter-total'>
-                <span className='featured-projects-counter-total-value'>
-                  {totalProjectNumber}
-                </span>
-              </span>
+                  <ChevronLeft aria-hidden='true' />
+                </button>
+
+                <button
+                  type='button'
+                  className='featured-projects-arrow'
+                  onClick={goNext}
+                  disabled={!hasMultipleProjects}
+                  aria-label='Next featured project'
+                >
+                  <ChevronRight aria-hidden='true' />
+                </button>
+              </div>
+            </div>
+
+            <span className='featured-projects-progress-track'>
+              <span
+                key={progressKey}
+                className='featured-projects-progress-fill'
+                style={{
+                  animationDuration: `${AUTOPLAY_DELAY}ms`,
+                }}
+              />
             </span>
-
-            <button
-              type='button'
-              className='featured-projects-arrow'
-              onClick={goNext}
-              disabled={!hasMultipleProjects}
-              aria-label='Next featured project'
-            >
-              <ChevronRight aria-hidden='true' />
-            </button>
           </div>
-
-          <span className='featured-projects-progress-track'>
-            <span
-              key={progressKey}
-              className='featured-projects-progress-fill'
-              style={{
-                animationDuration: `${AUTOPLAY_DELAY}ms`,
-              }}
-            />
-          </span>
         </div>
 
         <div className='featured-projects-card-stage'>
@@ -400,17 +439,18 @@ const ProjectInfoCard = ({
     </div>
 
     <div className='featured-projects-info-content'>
-      <div className='featured-projects-info-meta'>
-        {[project.location, project.type, project.status]
-          .filter(Boolean)
-          .map((item) => (
-            <span key={item}>{item}</span>
-          ))}
-      </div>
       <h3>{project.title}</h3>
       <p>{project.description}</p>
-      <Link to={`/projects/${project.id}`} className='featured-projects-link'>
-        <span>Learn More</span>
+      {project.location ? (
+        <div className='featured-projects-info-location'>
+          {getPrimaryLocation(project.location)}
+        </div>
+      ) : null}
+      <Link
+        to={`/projects/${getProjectSlug(project)}`}
+        className='featured-projects-link'
+      >
+        <span> About Project</span>
         <ArrowUpRight aria-hidden='true' />
       </Link>
     </div>
