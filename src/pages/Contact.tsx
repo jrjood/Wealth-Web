@@ -131,10 +131,10 @@ const responseNotes = [
 ];
 
 const inputShellClass =
-  'group relative block rounded-lg border border-white/10 bg-white/[0.045] transition-colors focus-within:border-[hsl(var(--brand-red-500))] focus-within:bg-white/[0.07]';
+  'group relative block rounded-lg border border-[hsl(var(--brand-black)/0.16)] bg-white/55 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition-colors focus-within:border-[hsl(var(--brand-red-500))] focus-within:bg-white/78';
 
 const inputIconClass =
-  'pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/36 transition-colors group-focus-within:text-[hsl(var(--brand-red-500))]';
+  'pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[hsl(var(--brand-black)/0.42)] transition-colors group-focus-within:text-[hsl(var(--brand-red-500))]';
 
 const Contact = () => {
   useSEO({
@@ -236,12 +236,12 @@ const Contact = () => {
 
   return (
     <Layout>
-      <section className='relative min-h-screen overflow-hidden bg-[hsl(var(--brand-black))] pt-28 text-white sm:pt-32'>
+      <section className='relative min-h-screen overflow-hidden bg-[hsl(var(--brand-black-700))] pt-28 text-white sm:pt-32'>
         <div
           className='pointer-events-none absolute inset-0'
           aria-hidden='true'
         >
-          <div className='absolute inset-0 bg-[linear-gradient(135deg,hsl(var(--brand-black))_0%,hsl(var(--brand-black-900))_100%)]' />
+          <div className='absolute inset-0 bg-[linear-gradient(135deg,hsl(var(--brand-black-700))_0%,hsl(var(--brand-black-900))_100%)]' />
           <div className='absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(0deg,rgba(255,255,255,0.026)_1px,transparent_1px)] bg-[size:64px_64px] opacity-45' />
         </div>
 
@@ -253,9 +253,6 @@ const Contact = () => {
             className='mb-6 grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end'
           >
             <div>
-              <span className='mb-3 inline-flex rounded-full border border-white/12 bg-white/[0.055] px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/62'>
-                Contact
-              </span>
               <h1 className='max-w-3xl font-sans text-4xl font-black leading-[0.98] tracking-tight text-white sm:text-5xl lg:text-6xl'>
                 Let us connect you to the right team.
               </h1>
@@ -296,14 +293,14 @@ const Contact = () => {
                 delay: 0.06,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className='flex h-full flex-col rounded-lg border border-white/10 bg-white/[0.032] p-5 sm:p-6'
+              className='flex h-full flex-col rounded-lg border border-[hsl(var(--brand-cream)/0.78)] bg-[hsl(var(--brand-cream))] p-5 text-[hsl(var(--brand-black-900))] shadow-[0_1.75rem_4rem_rgba(0,0,0,0.24)] sm:p-6'
             >
               <div className='mb-5 flex flex-wrap items-end justify-between gap-3'>
                 <div>
-                  <p className='mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[hsl(var(--brand-red-500))]'>
+                  <p className='mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[hsl(var(--brand-red-700))]'>
                     Message
                   </p>
-                  <h2 className='text-2xl font-black tracking-tight text-white'>
+                  <h2 className='text-2xl font-black tracking-tight text-[hsl(var(--brand-black-900))]'>
                     Tell us what you need
                   </h2>
                 </div>
@@ -311,9 +308,9 @@ const Contact = () => {
                   {responseNotes.map((note) => (
                     <span
                       key={note}
-                      className='inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.045] px-3 py-1 text-xs text-white/58'
+                      className='inline-flex items-center gap-1.5 rounded-full border border-[hsl(var(--brand-black)/0.12)] bg-white/45 px-3 py-1 text-xs font-semibold text-[hsl(var(--brand-black)/0.64)]'
                     >
-                      <CheckCircle2 className='h-3.5 w-3.5 text-[hsl(var(--brand-red-500))]' />
+                      <CheckCircle2 className='h-3.5 w-3.5 text-[hsl(var(--brand-red-700))]' />
                       {note}
                     </span>
                   ))}
@@ -323,7 +320,7 @@ const Contact = () => {
               <form onSubmit={handleSubmit} className='space-y-4'>
                 <div className='grid gap-5 sm:grid-cols-2'>
                   <label className='space-y-2'>
-                    <span className='text-sm font-medium text-white/82'>
+                    <span className='text-sm font-semibold text-[hsl(var(--brand-black)/0.72)]'>
                       Full Name *
                     </span>
                     <span className={inputShellClass}>
@@ -335,12 +332,12 @@ const Contact = () => {
                           setFormData({ ...formData, name: e.target.value })
                         }
                         placeholder='Your full name'
-                        className='border-0 bg-transparent pl-11 text-white placeholder:text-white/32 focus-visible:ring-0'
+                        className='border-0 bg-transparent pl-11 text-[hsl(var(--brand-black-900))] placeholder:text-[hsl(var(--brand-black)/0.38)] focus-visible:ring-0'
                       />
                     </span>
                   </label>
                   <label className='space-y-2'>
-                    <span className='text-sm font-medium text-white/82'>
+                    <span className='text-sm font-semibold text-[hsl(var(--brand-black)/0.72)]'>
                       Email *
                     </span>
                     <span className={inputShellClass}>
@@ -353,7 +350,7 @@ const Contact = () => {
                           setFormData({ ...formData, email: e.target.value })
                         }
                         placeholder='your@email.com'
-                        className='border-0 bg-transparent pl-11 text-white placeholder:text-white/32 focus-visible:ring-0'
+                        className='border-0 bg-transparent pl-11 text-[hsl(var(--brand-black-900))] placeholder:text-[hsl(var(--brand-black)/0.38)] focus-visible:ring-0'
                       />
                     </span>
                   </label>
@@ -361,7 +358,7 @@ const Contact = () => {
 
                 <div className='grid gap-5 sm:grid-cols-2'>
                   <label className='space-y-2'>
-                    <span className='text-sm font-medium text-white/82'>
+                    <span className='text-sm font-semibold text-[hsl(var(--brand-black)/0.72)]'>
                       Phone *
                     </span>
                     <span className={inputShellClass}>
@@ -375,12 +372,12 @@ const Contact = () => {
                         }
                         placeholder='Phone number'
                         autoComplete='tel'
-                        className='border-0 bg-transparent pl-11 text-white placeholder:text-white/32 focus-visible:ring-0'
+                        className='border-0 bg-transparent pl-11 text-[hsl(var(--brand-black-900))] placeholder:text-[hsl(var(--brand-black)/0.38)] focus-visible:ring-0'
                       />
                     </span>
                   </label>
                   <label className='space-y-2'>
-                    <span className='text-sm font-medium text-white/82'>
+                    <span className='text-sm font-semibold text-[hsl(var(--brand-black)/0.72)]'>
                       Project of Interest
                     </span>
                     <span className={inputShellClass}>
@@ -392,7 +389,7 @@ const Contact = () => {
                         }
                         disabled={projectsLoading}
                       >
-                        <SelectTrigger className='border-0 bg-transparent pl-11 text-white focus:ring-0'>
+                        <SelectTrigger className='border-0 bg-transparent pl-11 text-[hsl(var(--brand-black-900))] focus:ring-0'>
                           <SelectValue
                             placeholder={
                               projectsLoading
@@ -417,11 +414,11 @@ const Contact = () => {
                 </div>
 
                 <label className='block space-y-2'>
-                  <span className='text-sm font-medium text-white/82'>
+                  <span className='text-sm font-semibold text-[hsl(var(--brand-black)/0.72)]'>
                     Message *
                   </span>
-                  <span className='group relative block rounded-lg border border-white/10 bg-white/[0.04] transition-colors focus-within:border-[hsl(var(--brand-red-500))] focus-within:bg-white/[0.06]'>
-                    <PenLine className='pointer-events-none absolute left-4 top-4 h-4 w-4 text-white/36 transition-colors group-focus-within:text-[hsl(var(--brand-red-500))]' />
+                  <span className='group relative block rounded-lg border border-[hsl(var(--brand-black)/0.16)] bg-white/55 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition-colors focus-within:border-[hsl(var(--brand-red-500))] focus-within:bg-white/78'>
+                    <PenLine className='pointer-events-none absolute left-4 top-4 h-4 w-4 text-[hsl(var(--brand-black)/0.42)] transition-colors group-focus-within:text-[hsl(var(--brand-red-500))]' />
                     <Textarea
                       required
                       value={formData.message}
@@ -430,7 +427,7 @@ const Contact = () => {
                       }
                       placeholder='How can we help?'
                       rows={4}
-                      className='border-0 bg-transparent pl-11 text-white placeholder:text-white/32 focus-visible:ring-0'
+                      className='border-0 bg-transparent pl-11 text-[hsl(var(--brand-black-900))] placeholder:text-[hsl(var(--brand-black)/0.38)] focus-visible:ring-0'
                     />
                   </span>
                 </label>
@@ -438,7 +435,7 @@ const Contact = () => {
                 <AnimatedPillButton
                   type='submit'
                   label={isSubmitting ? 'Sending...' : 'Send Message'}
-                  tone='brand'
+                  tone='dark'
                   className='w-full sm:w-auto disabled:cursor-not-allowed disabled:opacity-50'
                   labelClassName='text-sm md:text-base'
                   disabled={isSubmitting}

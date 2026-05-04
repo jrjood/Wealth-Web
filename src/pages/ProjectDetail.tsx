@@ -760,18 +760,19 @@ const ProjectDetail = () => {
                     whileInView='visible'
                     viewport={revealViewport}
                     variants={revealRight}
-                    className='rounded-lg border border-border/60 bg-card p-5 xl:p-6'
+                    className='rounded-lg border border-[hsl(var(--brand-cream)/0.78)] bg-[hsl(var(--brand-cream))] p-5 text-[hsl(var(--brand-black-900))] shadow-[0_1.75rem_4rem_rgba(0,0,0,0.24)] xl:p-6'
                   >
-                    <h3 className='heading-card text-foreground mb-2'>
+                    <h3 className='heading-card mb-2 text-[hsl(var(--brand-black-900))]'>
                       Inquire About {project.title}
                     </h3>
-                    <p className='mb-3 text-xs text-muted-foreground'>
+                    <p className='mb-3 text-xs font-medium text-[hsl(var(--brand-black)/0.62)]'>
                       Leave your details and our sales team will get in touch.
                     </p>
                     <form onSubmit={handleLeadSubmit} className='space-y-3'>
                       <Input
                         id='lead-name'
                         placeholder='Your Name'
+                        className='border-[hsl(var(--brand-black)/0.16)] bg-white/55 text-[hsl(var(--brand-black-900))] placeholder:text-[hsl(var(--brand-black)/0.38)] focus-visible:ring-[hsl(var(--brand-red-500))]'
                         value={leadForm.name}
                         onChange={(event) =>
                           setLeadForm((current) => ({
@@ -785,6 +786,7 @@ const ProjectDetail = () => {
                       <Input
                         id='lead-phone'
                         placeholder='Phone Number'
+                        className='border-[hsl(var(--brand-black)/0.16)] bg-white/55 text-[hsl(var(--brand-black-900))] placeholder:text-[hsl(var(--brand-black)/0.38)] focus-visible:ring-[hsl(var(--brand-red-500))]'
                         value={leadForm.phone}
                         onChange={(event) =>
                           setLeadForm((current) => ({
@@ -799,6 +801,7 @@ const ProjectDetail = () => {
                         id='lead-email'
                         type='email'
                         placeholder='Email Address'
+                        className='border-[hsl(var(--brand-black)/0.16)] bg-white/55 text-[hsl(var(--brand-black-900))] placeholder:text-[hsl(var(--brand-black)/0.38)] focus-visible:ring-[hsl(var(--brand-red-500))]'
                         value={leadForm.email}
                         onChange={(event) =>
                           setLeadForm((current) => ({
@@ -812,20 +815,20 @@ const ProjectDetail = () => {
                       <AnimatedPillButton
                         type='submit'
                         label={leadSubmitting ? 'Sending...' : 'Submit Inquiry'}
-                        tone='light'
-                        className='w-full border-0 !border-none disabled:cursor-not-allowed disabled:opacity-50'
+                        tone='dark'
+                        className='w-full disabled:cursor-not-allowed disabled:opacity-50'
                         labelClassName='text-sm'
                         disabled={leadSubmitting}
                       />
                     </form>
-                    <div className='mt-3 flex items-end justify-between gap-3 border-t border-border pt-3'>
+                    <div className='mt-3 flex items-end justify-between gap-3 border-t border-[hsl(var(--brand-black)/0.14)] pt-3'>
                       <div>
-                        <p className='mb-1 text-xs text-muted-foreground'>
+                        <p className='mb-1 text-xs font-medium text-[hsl(var(--brand-black)/0.58)]'>
                           Sales Hotline
                         </p>
                         <a
                           href='tel:19640'
-                          className='text-base font-semibold text-foreground transition-colors hover:text-primary'
+                          className='text-base font-semibold text-[hsl(var(--brand-black-900))] transition-colors hover:text-[hsl(var(--brand-red-500))]'
                         >
                           19640
                         </a>

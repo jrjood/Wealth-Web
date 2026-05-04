@@ -11,13 +11,15 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
-  Briefcase,
-  FileText,
-  FolderKanban,
-  Mail,
+  ArrowRight,
+  CalendarClock,
+  ClipboardList,
+  FilePenLine,
+  Inbox,
+  LayoutGrid,
   LogOut,
-  Newspaper,
-  MessagesSquare,
+  MessageCircleMore,
+  UserRoundCheck,
 } from 'lucide-react';
 import { adminFetch } from '@/lib/adminApi';
 
@@ -67,6 +69,9 @@ export default function AdminDashboard() {
   const [applicationsLoading, setApplicationsLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(true);
   const [projectInquiriesLoading, setProjectInquiriesLoading] = useState(true);
+  const [applicationsTotal, setApplicationsTotal] = useState(0);
+  const [messagesTotal, setMessagesTotal] = useState(0);
+  const [projectInquiriesTotal, setProjectInquiriesTotal] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -99,7 +104,9 @@ export default function AdminDashboard() {
         }
 
         const data = await response.json();
-        setRecentApplications(Array.isArray(data) ? data.slice(0, 4) : []);
+        const applications = Array.isArray(data) ? data : [];
+        setApplicationsTotal(applications.length);
+        setRecentApplications(applications.slice(0, 4));
       } finally {
         setApplicationsLoading(false);
       }
@@ -118,9 +125,9 @@ export default function AdminDashboard() {
         }
 
         const data = await response.json();
-        setRecentProjectInquiries(
-          Array.isArray(data) ? data.slice(0, 4) : [],
-        );
+        const inquiries = Array.isArray(data) ? data : [];
+        setProjectInquiriesTotal(inquiries.length);
+        setRecentProjectInquiries(inquiries.slice(0, 4));
       } finally {
         setProjectInquiriesLoading(false);
       }
@@ -139,7 +146,9 @@ export default function AdminDashboard() {
         }
 
         const data = await response.json();
-        setRecentMessages(Array.isArray(data) ? data.slice(0, 4) : []);
+        const messages = Array.isArray(data) ? data : [];
+        setMessagesTotal(messages.length);
+        setRecentMessages(messages.slice(0, 4));
       } finally {
         setMessagesLoading(false);
       }
@@ -160,239 +169,321 @@ export default function AdminDashboard() {
     return null;
   }
 
-  const cards = [
+  const formatDate = (date: string) =>
+    new Intl.DateTimeFormat('en', {
+      day: '2-digit',
+      month: 'short',
+    }).format(new Date(date));
+
+  const metricCards = [
+    {
+      title: 'Project Inquiries',
+      value: projectInquiriesTotal,
+      description: 'Project page leads',
+      icon: MessageCircleMore,
+      loading: projectInquiriesLoading,
+      link: '/admin/project-inquiries',
+      tone: 'bg-background text-foreground border-border',
+    },
+    {
+      title: 'Contact Messages',
+      value: messagesTotal,
+      description: 'General contact requests',
+      icon: Inbox,
+      loading: messagesLoading,
+      link: '/admin/contact-messages',
+      tone: 'bg-background text-foreground border-border',
+    },
+    {
+      title: 'Job Applications',
+      value: applicationsTotal,
+      description: 'Careers submissions',
+      icon: UserRoundCheck,
+      loading: applicationsLoading,
+      link: '/admin/applications',
+      tone: 'bg-background text-foreground border-border',
+    },
+  ];
+
+  const managementCards = [
     {
       title: 'Manage Projects',
       description: 'Add, edit, or remove property projects',
-      icon: FolderKanban,
+      icon: LayoutGrid,
       link: '/admin/projects',
-      color: 'text-blue-500',
+      color: 'text-foreground',
     },
     {
       title: 'Manage Jobs',
       description: 'Add, edit, or remove job openings',
-      icon: Briefcase,
+      icon: ClipboardList,
       link: '/admin/jobs',
-      color: 'text-green-500',
+      color: 'text-foreground',
+    },
+
+    {
+      title: 'Manage Blogs',
+      description: 'Create, edit, or remove blog posts',
+      icon: FilePenLine,
+      link: '/admin/blogs',
+      color: 'text-foreground',
     },
     {
       title: 'Job Applications',
       description: 'Review applications and download CVs',
-      icon: FileText,
+      icon: UserRoundCheck,
       link: '/admin/applications',
-      color: 'text-amber-500',
-    },
-    {
-      title: 'Manage Blogs',
-      description: 'Create, edit, or remove blog posts',
-      icon: Newspaper,
-      link: '/admin/blogs',
-      color: 'text-violet-500',
+      color: 'text-foreground',
     },
     {
       title: 'Contact Messages',
       description: 'Review and export messages from the contact page',
-      icon: Mail,
+      icon: Inbox,
       link: '/admin/contact-messages',
-      color: 'text-rose-500',
+      color: 'text-foreground',
     },
     {
       title: 'Project Inquiries',
       description: 'Review and export leads from project pages',
-      icon: MessagesSquare,
+      icon: MessageCircleMore,
       link: '/admin/project-inquiries',
-      color: 'text-cyan-500',
+      color: 'text-foreground',
+    },
+  ];
+
+  const recentSections = [
+    {
+      title: 'Recent Project Inquiries',
+      description: 'Latest leads from project detail pages',
+      loading: projectInquiriesLoading,
+      empty: 'No project inquiries yet.',
+      link: '/admin/project-inquiries',
+      items: recentProjectInquiries.map((inquiry) => ({
+        id: inquiry.id,
+        title: inquiry.name,
+        eyebrow: inquiry.projectTitle || 'Project inquiry',
+        meta: inquiry.email,
+        detail: inquiry.message,
+        date: inquiry.createdAt,
+      })),
+    },
+    {
+      title: 'Recent Job Applications',
+      description: 'Latest submissions from the careers page',
+      loading: applicationsLoading,
+      empty: 'No applications yet.',
+      link: '/admin/applications',
+      items: recentApplications.map((application) => ({
+        id: application.id,
+        title: application.name,
+        eyebrow: application.jobTitle,
+        meta: application.status.replace(/_/g, ' '),
+        detail: `Submitted ${new Date(application.createdAt).toLocaleString()}`,
+        date: application.createdAt,
+      })),
+    },
+    {
+      title: 'Recent Contact Messages',
+      description: 'Latest messages from the contact form',
+      loading: messagesLoading,
+      empty: 'No contact messages yet.',
+      link: '/admin/contact-messages',
+      items: recentMessages.map((message) => ({
+        id: message.id,
+        title: message.name,
+        eyebrow: message.projectTitle || 'General inquiry',
+        meta: message.email,
+        detail: message.message,
+        date: message.createdAt,
+      })),
     },
   ];
 
   return (
     <Layout showFooter={false}>
-      <div className='container mx-auto px-4 py-12'>
-        <div className='flex justify-between items-center mb-8'>
-          <div>
-            <h1 className='text-3xl font-bold mb-2'>Admin Dashboard</h1>
-            <p className='text-muted-foreground'>Welcome back, {admin.name}</p>
-          </div>
-          <Button variant='outline' onClick={handleLogout}>
-            <LogOut className='mr-2 h-4 w-4' />
-            Logout
-          </Button>
-        </div>
-
-        <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-6'>
-          {cards.map((card, index) => (
-            <motion.div
-              key={card.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-            >
-              <Link to={card.link}>
-                <Card className='hover:shadow-lg transition-shadow cursor-pointer'>
-                  <CardHeader>
-                    <div className='flex items-center gap-4'>
-                      <div className={`p-3   rounded-lg ${card.color}`}>
-                        <card.icon className='h-6 w-6' />
-                      </div>
-                      <div>
-                        <CardTitle>{card.title}</CardTitle>
-                        <CardDescription>{card.description}</CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                </Card>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-
-        <div className='mt-10'>
-          <div className='mb-4 flex items-center justify-between gap-4'>
-            <div>
-              <h2 className='text-2xl font-bold'>Recent Project Inquiries</h2>
-              <p className='text-muted-foreground'>
-                The latest leads submitted from project detail pages
+      <div className='min-h-screen bg-[hsl(var(--muted))]'>
+        <div className='mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8'>
+          <div className='mb-6 flex flex-col gap-4 rounded-lg border border-border bg-card p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between'>
+            <div className='min-w-0'>
+              <h1 className='text-2xl font-black tracking-tight text-foreground md:text-3xl'>
+                Dashboard
+              </h1>
+              <p className='mt-1 text-sm text-muted-foreground'>
+                Welcome back, {admin.name}. Review new leads, applications, and
+                content controls from one place.
               </p>
             </div>
-            <Link to='/admin/project-inquiries'>
-              <Button variant='outline'>View all</Button>
-            </Link>
+            <div className='flex flex-col gap-2 sm:items-end'>
+              <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+                <CalendarClock className='h-4 w-4' />
+                {new Date().toLocaleDateString('en', {
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric',
+                })}
+              </div>
+              <Button variant='outline' size='sm' onClick={handleLogout}>
+                <LogOut className='h-4 w-4' />
+                Logout
+              </Button>
+            </div>
           </div>
 
-          {projectInquiriesLoading ? (
-            <div className='rounded-sm border border-border bg-card p-6 text-center text-muted-foreground'>
-              Loading project inquiries...
-            </div>
-          ) : recentProjectInquiries.length === 0 ? (
-            <div className='rounded-sm border border-border bg-card p-6 text-center text-muted-foreground'>
-              No project inquiries yet.
-            </div>
-          ) : (
-            <div className='grid gap-4'>
-              {recentProjectInquiries.map((inquiry) => (
-                <Card key={inquiry.id}>
-                  <CardHeader>
-                    <div className='flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between'>
+          <div className='grid gap-4 md:grid-cols-3'>
+            {metricCards.map((metric, index) => (
+              <motion.div
+                key={metric.title}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: index * 0.06 }}
+              >
+                <Link to={metric.link} className='group block h-full'>
+                  <Card className='h-full border-border/80 bg-card shadow-sm transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-[hsl(var(--brand-red-500)/0.28)] hover:shadow-md'>
+                    <CardHeader className='flex flex-row items-start justify-between gap-4 space-y-0 pb-3'>
                       <div>
-                        <CardTitle className='text-lg'>
-                          {inquiry.name}
-                        </CardTitle>
-                        <CardDescription>
-                          {inquiry.projectTitle || 'Project inquiry'}
+                        <CardDescription className='text-xs font-bold uppercase tracking-[0.14em]'>
+                          {metric.title}
                         </CardDescription>
+                        <CardTitle className='mt-2 text-3xl font-black'>
+                          {metric.loading ? '-' : metric.value}
+                        </CardTitle>
                       </div>
-                      <span className='text-sm uppercase tracking-wide text-muted-foreground'>
-                        {new Date(inquiry.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </CardHeader>
-                  <CardContent className='space-y-2 text-sm text-muted-foreground'>
-                    <div>{inquiry.email}</div>
-                    <div>{inquiry.message}</div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className='mt-10'>
-          <div className='mb-4 flex items-center justify-between gap-4'>
-            <div>
-              <h2 className='text-2xl font-bold'>Recent Job Applications</h2>
-              <p className='text-muted-foreground'>
-                The latest submissions from the careers page
-              </p>
-            </div>
-            <Link to='/admin/applications'>
-              <Button variant='outline'>View all</Button>
-            </Link>
+                      <div
+                        className={`rounded-lg border p-2.5 shadow-sm ${metric.tone}`}
+                      >
+                        <metric.icon className='h-5 w-5 stroke-[1.8]' />
+                      </div>
+                    </CardHeader>
+                    <CardContent className='flex items-center justify-between text-sm text-muted-foreground'>
+                      <span>{metric.description}</span>
+                      <ArrowRight className='h-4 w-4 transition-transform duration-300 group-hover:translate-x-1' />
+                    </CardContent>
+                  </Card>
+                </Link>
+              </motion.div>
+            ))}
           </div>
 
-          {applicationsLoading ? (
-            <div className='rounded-sm border border-border bg-card p-6 text-center text-muted-foreground'>
-              Loading applications...
+          <section className='mt-6'>
+            <div className='mb-3 flex items-end justify-between gap-4'>
+              <div>
+                <h2 className='text-lg font-black tracking-tight'>
+                  Management
+                </h2>
+                <p className='text-sm text-muted-foreground'>
+                  Common admin actions and content areas
+                </p>
+              </div>
             </div>
-          ) : recentApplications.length === 0 ? (
-            <div className='rounded-sm border border-border bg-card p-6 text-center text-muted-foreground'>
-              No applications yet.
-            </div>
-          ) : (
-            <div className='grid gap-4'>
-              {recentApplications.map((application) => (
-                <Card key={application.id}>
-                  <CardHeader>
-                    <div className='flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between'>
-                      <div>
-                        <CardTitle className='text-lg'>
-                          {application.name}
-                        </CardTitle>
-                        <CardDescription>
-                          {application.jobTitle}
-                        </CardDescription>
-                      </div>
-                      <span className='text-sm uppercase tracking-wide text-muted-foreground'>
-                        {application.status.replace(/_/g, ' ')}
-                      </span>
-                    </div>
-                  </CardHeader>
-                  <CardContent className='text-sm text-muted-foreground'>
-                    Submitted {new Date(application.createdAt).toLocaleString()}
-                  </CardContent>
-                </Card>
+            <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-3'>
+              {managementCards.map((card, index) => (
+                <motion.div
+                  key={card.title}
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, delay: 0.18 + index * 0.05 }}
+                >
+                  <Link to={card.link} className='group block h-full'>
+                    <Card className='h-full cursor-pointer border-border/80 bg-card shadow-sm transition-[border-color,background-color,box-shadow] duration-300 hover:border-[hsl(var(--brand-red-500)/0.24)] hover:bg-background hover:shadow-md'>
+                      <CardHeader className='p-4'>
+                        <div className='flex items-start gap-3'>
+                          <div
+                            className={`rounded-lg border border-border bg-background p-2.5 shadow-sm ${card.color}`}
+                          >
+                            <card.icon className='h-5 w-5 stroke-[1.8]' />
+                          </div>
+                          <div className='min-w-0 flex-1'>
+                            <CardTitle className='text-base'>
+                              {card.title}
+                            </CardTitle>
+                            <CardDescription className='mt-1 line-clamp-2 text-sm leading-relaxed'>
+                              {card.description}
+                            </CardDescription>
+                          </div>
+                          <ArrowRight className='mt-1 h-4 w-4 text-muted-foreground transition-transform duration-300 group-hover:translate-x-1' />
+                        </div>
+                      </CardHeader>
+                    </Card>
+                  </Link>
+                </motion.div>
               ))}
             </div>
-          )}
-        </div>
+          </section>
 
-        <div className='mt-10'>
-          <div className='mb-4 flex items-center justify-between gap-4'>
-            <div>
-              <h2 className='text-2xl font-bold'>Recent Contact Messages</h2>
-              <p className='text-muted-foreground'>
-                The latest messages submitted through the contact form
-              </p>
-            </div>
-            <Link to='/admin/contact-messages'>
-              <Button variant='outline'>View all</Button>
-            </Link>
-          </div>
-
-          {messagesLoading ? (
-            <div className='rounded-sm border border-border bg-card p-6 text-center text-muted-foreground'>
-              Loading messages...
-            </div>
-          ) : recentMessages.length === 0 ? (
-            <div className='rounded-sm border border-border bg-card p-6 text-center text-muted-foreground'>
-              No contact messages yet.
-            </div>
-          ) : (
-            <div className='grid gap-4'>
-              {recentMessages.map((message) => (
-                <Card key={message.id}>
-                  <CardHeader>
-                    <div className='flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between'>
+          <section className='mt-6 grid gap-4 xl:grid-cols-3'>
+            {recentSections.map((section, index) => (
+              <motion.div
+                key={section.title}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.35 + index * 0.05 }}
+              >
+                <Card className='h-full border-border/80 bg-card shadow-sm'>
+                  <CardHeader className='border-b border-border/70 p-4'>
+                    <div className='flex items-start justify-between gap-3'>
                       <div>
-                        <CardTitle className='text-lg'>
-                          {message.name}
+                        <CardTitle className='text-base'>
+                          {section.title}
                         </CardTitle>
-                        <CardDescription>
-                          {message.projectTitle || 'General inquiry'}
+                        <CardDescription className='mt-1'>
+                          {section.description}
                         </CardDescription>
                       </div>
-                      <span className='text-sm uppercase tracking-wide text-muted-foreground'>
-                        {new Date(message.createdAt).toLocaleDateString()}
-                      </span>
+                      <Button
+                        asChild
+                        variant='ghost'
+                        size='sm'
+                        className='shrink-0'
+                      >
+                        <Link to={section.link}>View all</Link>
+                      </Button>
                     </div>
                   </CardHeader>
-                  <CardContent className='space-y-2 text-sm text-muted-foreground'>
-                    <div>{message.email}</div>
-                    <div>{message.message}</div>
+                  <CardContent className='p-0'>
+                    {section.loading ? (
+                      <div className='grid min-h-44 place-items-center px-4 py-8 text-sm text-muted-foreground'>
+                        Loading...
+                      </div>
+                    ) : section.items.length === 0 ? (
+                      <div className='grid min-h-44 place-items-center px-4 py-8 text-center text-sm text-muted-foreground'>
+                        {section.empty}
+                      </div>
+                    ) : (
+                      <div className='divide-y divide-border/70'>
+                        {section.items.map((item) => (
+                          <Link
+                            key={item.id}
+                            to={section.link}
+                            className='group block p-4 transition-colors duration-200 hover:bg-muted/70'
+                          >
+                            <div className='mb-2 flex items-start justify-between gap-3'>
+                              <div className='min-w-0'>
+                                <p className='truncate text-sm font-bold text-foreground'>
+                                  {item.title}
+                                </p>
+                                <p className='truncate text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground'>
+                                  {item.eyebrow}
+                                </p>
+                              </div>
+                              <span className='shrink-0 rounded-full bg-muted px-2 py-1 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-muted-foreground'>
+                                {formatDate(item.date)}
+                              </span>
+                            </div>
+                            <p className='truncate text-xs text-muted-foreground'>
+                              {item.meta}
+                            </p>
+                            <p className='mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground'>
+                              {item.detail}
+                            </p>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
-              ))}
-            </div>
-          )}
+              </motion.div>
+            ))}
+          </section>
         </div>
       </div>
     </Layout>

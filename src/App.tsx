@@ -242,6 +242,14 @@ function AppRoutes() {
     shouldRenderSplash && !isSplashComplete,
     displayLocation.pathname,
   );
+  const adminNavItems = [
+    { label: 'Dashboard', to: '/admin/dashboard' },
+    { label: 'Projects', to: '/admin/projects' },
+    { label: 'Jobs', to: '/admin/jobs' },
+    { label: 'Leads', to: '/admin/project-inquiries' },
+    { label: 'Messages', to: '/admin/contact-messages' },
+    { label: 'Blog', to: '/admin/blogs' },
+  ];
 
   useLocomotiveScroll(displayLocation.pathname, !isAdminRoute);
 
@@ -350,15 +358,11 @@ function AppRoutes() {
           onFinish={() => setIsSplashComplete(true)}
         />
       ) : null}
-      <LoadingScreen
-        isLoading={shouldRenderSplash && isLoading}
-      />
+      <LoadingScreen isLoading={shouldRenderSplash && isLoading} />
       {!isAdminRoute ? (
         <div
           className={`transition-opacity duration-300 ease-out ${
-            isSplashComplete
-              ? 'opacity-100'
-              : 'pointer-events-none opacity-0'
+            isSplashComplete ? 'opacity-100' : 'pointer-events-none opacity-0'
           }`}
           aria-hidden={!isSplashComplete}
         >
@@ -389,14 +393,56 @@ function AppRoutes() {
         </div>
       ) : null}
       {isAdminRoute ? (
-        <header className='sticky top-0 z-30 flex h-20 items-center border-b border-white/10 bg-[hsl(var(--brand-black))] px-4 md:px-8'>
-          <a href='/' aria-label='Go to homepage'>
-            <img
-              src={emblemImage}
-              alt='Wealth Holding Logo'
-              className='h-11 w-11 object-contain [filter:brightness(0)_saturate(100%)_invert(92%)_sepia(16%)_saturate(328%)_hue-rotate(355deg)_brightness(101%)_contrast(93%)]'
-            />
-          </a>
+        <header className='sticky top-0 z-30 border-b border-border/80 bg-[hsl(var(--muted)/0.96)] px-4 backdrop-blur supports-[backdrop-filter]:bg-[hsl(var(--muted)/0.86)] sm:px-6 lg:px-8'>
+          <div className='mx-auto flex min-h-16 w-full max-w-7xl flex-col gap-3 py-3 md:min-h-20 md:flex-row md:items-center md:justify-between md:py-0'>
+            <a
+              href='/admin/dashboard'
+              className='flex min-w-0 items-center gap-3'
+              aria-label='Go to admin dashboard'
+            >
+              <span className='grid h-11 w-11 shrink-0 place-items-center rounded-lg    shadow-sm'>
+                <img
+                  src={emblemImage}
+                  alt='Wealth Holding Logo'
+                  className='h-8 w-8 object-contain'
+                />
+              </span>
+              <span className='min-w-0'>
+                <span className='block truncate text-sm font-black uppercase tracking-[0.16em] text-foreground'>
+                  Wealth Admin
+                </span>
+                <span className='block truncate text-xs font-semibold text-muted-foreground'>
+                  Operations dashboard
+                </span>
+              </span>
+            </a>
+
+            <nav
+              className='flex gap-1 overflow-x-auto pb-1 md:pb-0'
+              aria-label='Admin navigation'
+            >
+              {adminNavItems.map((item) => {
+                const isActive =
+                  location.pathname === item.to ||
+                  (item.to !== '/admin/dashboard' &&
+                    location.pathname.startsWith(item.to));
+
+                return (
+                  <a
+                    key={item.to}
+                    href={item.to}
+                    className={`shrink-0 rounded-full px-3 py-2 text-xs font-bold uppercase tracking-[0.08em] transition-colors duration-200 ${
+                      isActive
+                        ? 'bg-[hsl(var(--brand-red-500))] text-white shadow-sm'
+                        : 'text-muted-foreground hover:bg-card hover:text-foreground'
+                    }`}
+                  >
+                    {item.label}
+                  </a>
+                );
+              })}
+            </nav>
+          </div>
         </header>
       ) : null}
       <div
@@ -410,7 +456,9 @@ function AppRoutes() {
         <Routes location={displayLocation}>
           <Route
             path='/'
-            element={<Index revealReady={!shouldRenderSplash || isSplashComplete} />}
+            element={
+              <Index revealReady={!shouldRenderSplash || isSplashComplete} />
+            }
           />
           <Route path='/about-us' element={<About />} />
           <Route path='/projects' element={<Projects />} />
