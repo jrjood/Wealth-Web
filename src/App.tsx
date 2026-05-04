@@ -21,7 +21,16 @@ import AnimatedPillButton from '@/components/ui/AnimatedPillButton';
 import ProtectedAdminRoute from '@/components/auth/ProtectedAdminRoute';
 import useLocomotiveScroll from '@/hooks/useLocomotiveScroll';
 import { useState, useEffect, useRef } from 'react';
-import { emblemImage } from '@/assets';
+import {
+  aboutOneImage,
+  aboutTwoImage,
+  backgroundDarkImage,
+  brandGuidelinesImage,
+  emblemImage,
+  officeBuildingImage,
+  stampImage,
+  textHeroImage,
+} from '@/assets';
 import Index from './pages/Index';
 import About from './pages/About';
 import Projects from './pages/Projects';
@@ -42,6 +51,175 @@ import BlogPost from './pages/BlogPost';
 
 const queryClient = new QueryClient();
 
+const homePageStaticAssets = [
+  aboutOneImage,
+  aboutTwoImage,
+  backgroundDarkImage,
+  brandGuidelinesImage,
+  officeBuildingImage,
+  stampImage,
+  textHeroImage,
+];
+
+const waitForWindowLoad = () =>
+  new Promise<void>((resolve) => {
+    if (document.readyState === 'complete') {
+      resolve();
+      return;
+    }
+
+    window.addEventListener('load', () => resolve(), { once: true });
+  });
+
+const waitForFonts = () => {
+  if (!('fonts' in document)) {
+    return Promise.resolve();
+  }
+
+  return document.fonts.ready.then(() => undefined).catch(() => undefined);
+};
+
+const withTimeout = (promise: Promise<void>, timeoutMs: number) =>
+  new Promise<void>((resolve) => {
+    const timeout = window.setTimeout(resolve, timeoutMs);
+
+    promise.finally(() => {
+      window.clearTimeout(timeout);
+      resolve();
+    });
+  });
+
+const waitForPageMutationIdle = (root: HTMLElement) =>
+  new Promise<void>((resolve) => {
+    let idleTimer = window.setTimeout(finish, 650);
+    const maxTimer = window.setTimeout(finish, 8000);
+    const observer = new MutationObserver(() => {
+      window.clearTimeout(idleTimer);
+      idleTimer = window.setTimeout(finish, 650);
+    });
+
+    function finish() {
+      observer.disconnect();
+      window.clearTimeout(idleTimer);
+      window.clearTimeout(maxTimer);
+      resolve();
+    }
+
+    observer.observe(root, {
+      childList: true,
+      subtree: true,
+    });
+  });
+
+const waitForImageElement = (image: HTMLImageElement) => {
+  if (image.complete) {
+    return Promise.resolve();
+  }
+
+  return new Promise<void>((resolve) => {
+    const finish = () => resolve();
+
+    image.addEventListener('load', finish, { once: true });
+    image.addEventListener('error', finish, { once: true });
+  });
+};
+
+const preloadImageAsset = (src: string) =>
+  new Promise<void>((resolve) => {
+    const image = new Image();
+
+    image.onload = () => resolve();
+    image.onerror = () => resolve();
+    image.src = src;
+
+    if ('decode' in image) {
+      image.decode().then(resolve).catch(resolve);
+    }
+  });
+
+const waitForVideoElement = (video: HTMLVideoElement) => {
+  if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+    return Promise.resolve();
+  }
+
+  return new Promise<void>((resolve) => {
+    const finish = () => resolve();
+
+    video.addEventListener('loadeddata', finish, { once: true });
+    video.addEventListener('canplay', finish, { once: true });
+    video.addEventListener('error', finish, { once: true });
+  });
+};
+
+const waitForVisiblePageResources = () => {
+  const root = document.querySelector<HTMLElement>('#main');
+
+  if (!root) {
+    return Promise.resolve();
+  }
+
+  const images = Array.from(root.querySelectorAll('img')).filter(
+    (image) => image.loading !== 'lazy',
+  );
+  const videos = Array.from(root.querySelectorAll('video'));
+
+  return withTimeout(
+    Promise.all([
+      ...images.map((image) => withTimeout(waitForImageElement(image), 12000)),
+      ...videos.map((video) => withTimeout(waitForVideoElement(video), 12000)),
+    ]).then(() => undefined),
+    15000,
+  );
+};
+
+const usePageResourcesReady = (enabled: boolean, routeKey: string) => {
+  const [isReady, setIsReady] = useState(!enabled);
+
+  useEffect(() => {
+    if (!enabled) {
+      setIsReady(true);
+      return;
+    }
+
+    let isMounted = true;
+    setIsReady(false);
+
+    const settlePageResources = async () => {
+      await Promise.all([
+        waitForWindowLoad(),
+        waitForFonts(),
+        Promise.all(homePageStaticAssets.map(preloadImageAsset)),
+      ]);
+
+      await new Promise<void>((resolve) =>
+        window.requestAnimationFrame(() =>
+          window.requestAnimationFrame(() => resolve()),
+        ),
+      );
+
+      const root = document.querySelector<HTMLElement>('#main');
+
+      if (root) {
+        await waitForPageMutationIdle(root);
+      }
+
+      await waitForVisiblePageResources();
+
+      if (isMounted) {
+        setIsReady(true);
+      }
+    };
+
+    settlePageResources();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [enabled, routeKey]);
+
+  return isReady;
+};
+
 function AppRoutes() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -60,6 +238,10 @@ function AppRoutes() {
   const isProjectDetailPage = /^\/projects\/[^/]+$/.test(location.pathname);
   const shouldRenderFloatingTalkToSales =
     !isAdminRoute && !isContactPage && !isProjectDetailPage;
+  const arePageResourcesReady = usePageResourcesReady(
+    shouldRenderSplash && !isSplashComplete,
+    displayLocation.pathname,
+  );
 
   useLocomotiveScroll(displayLocation.pathname, !isAdminRoute);
 
@@ -163,7 +345,10 @@ function AppRoutes() {
     <>
       <ScrollToTop />
       {shouldRenderSplash ? (
-        <SplashScreen onFinish={() => setIsSplashComplete(true)} />
+        <SplashScreen
+          canExit={arePageResourcesReady}
+          onFinish={() => setIsSplashComplete(true)}
+        />
       ) : null}
       <LoadingScreen
         isLoading={shouldRenderSplash && isLoading}

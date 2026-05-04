@@ -3,12 +3,17 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { splashLogoLeftImage, splashLogoRightImage } from '@/assets';
 
 interface SplashScreenProps {
+  canExit?: boolean;
   onFinish: () => void;
 }
 
 const INTRO_DURATION = 0.72;
-const LOAD_DURATION = 2.75;
-const HOLD_DURATION = 1.25;
+const LOAD_DURATION = 4.25;
+const HOLD_DURATION = 1.6;
+const MINIMUM_SPLASH_DURATION_MS = 6500;
+const REDUCED_MOTION_MINIMUM_SPLASH_DURATION_MS = 2200;
+const COMPLETE_FILL_DURATION_MS = 850;
+const EXIT_AFTER_COMPLETE_DELAY_MS = 240;
 const TEXT_ENTRY_DELAY = 0.22;
 const TEXT_ENTRY_DURATION = 0.74;
 const TEXT_EXIT_DURATION = 0.72;
@@ -26,25 +31,104 @@ const wealthSlogans = [
   'Building wealth that lasts.',
 ];
 
-export function SplashScreen({ onFinish }: SplashScreenProps) {
+const preloadImage = (src: string) =>
+  new Promise<void>((resolve) => {
+    const image = new Image();
+
+    image.onload = () => resolve();
+    image.onerror = () => resolve();
+    image.src = src;
+
+    if ('decode' in image) {
+      image.decode().then(resolve).catch(resolve);
+    }
+  });
+
+export function SplashScreen({ canExit = true, onFinish }: SplashScreenProps) {
   const reduceMotion = useReducedMotion();
   const [isContentVisible, setIsContentVisible] = useState(true);
   const [isCurtainVisible, setIsCurtainVisible] = useState(true);
   const [currentSloganIndex, setCurrentSloganIndex] = useState(0);
   const [progress, setProgress] = useState(0);
+  const progressRef = useRef(0);
+  const isReadyToExitRef = useRef(false);
+  const [minimumTimeElapsed, setMinimumTimeElapsed] = useState(false);
+  const [splashAssetsReady, setSplashAssetsReady] = useState(false);
   const textLogoRef = useRef<HTMLImageElement>(null);
   const [logoCenterShift, setLogoCenterShift] = useState(96);
+  const isReadyToExit = canExit && minimumTimeElapsed && splashAssetsReady;
 
   useEffect(() => {
-    const exitDelay = reduceMotion
-      ? 250
-      : (INTRO_DURATION + LOAD_DURATION + HOLD_DURATION) * 1000;
-    const exitTimer = window.setTimeout(() => {
-      setIsContentVisible(false);
-    }, exitDelay);
+    isReadyToExitRef.current = isReadyToExit;
+  }, [isReadyToExit]);
 
-    return () => window.clearTimeout(exitTimer);
+  useEffect(() => {
+    const minimumTimer = window.setTimeout(
+      () => setMinimumTimeElapsed(true),
+      reduceMotion
+        ? REDUCED_MOTION_MINIMUM_SPLASH_DURATION_MS
+        : MINIMUM_SPLASH_DURATION_MS,
+    );
+
+    return () => window.clearTimeout(minimumTimer);
   }, [reduceMotion]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    Promise.all([
+      preloadImage(splashLogoLeftImage),
+      preloadImage(splashLogoRightImage),
+    ]).then(() => {
+      if (isMounted) {
+        setSplashAssetsReady(true);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isReadyToExit) {
+      return;
+    }
+
+    const startProgress = progressRef.current;
+    const completeStartTime = window.performance.now();
+    let animationFrameId = 0;
+    let exitTimer = 0;
+
+    const animateToComplete = () => {
+      const elapsedTime = window.performance.now() - completeStartTime;
+      const progressRatio = Math.min(1, elapsedTime / COMPLETE_FILL_DURATION_MS);
+      const easedProgress = 1 - Math.pow(1 - progressRatio, 3);
+      const nextProgress = startProgress + (100 - startProgress) * easedProgress;
+
+      progressRef.current = nextProgress;
+      setProgress(nextProgress);
+
+      if (progressRatio < 1) {
+        animationFrameId = window.requestAnimationFrame(animateToComplete);
+        return;
+      }
+
+      progressRef.current = 100;
+      setProgress(100);
+      exitTimer = window.setTimeout(
+        () => setIsContentVisible(false),
+        reduceMotion ? 80 : EXIT_AFTER_COMPLETE_DELAY_MS,
+      );
+    };
+
+    animationFrameId = window.requestAnimationFrame(animateToComplete);
+
+    return () => {
+      window.cancelAnimationFrame(animationFrameId);
+      window.clearTimeout(exitTimer);
+    };
+  }, [isReadyToExit, reduceMotion]);
 
   useEffect(() => {
     if (isContentVisible) {
@@ -80,7 +164,9 @@ export function SplashScreen({ onFinish }: SplashScreenProps) {
 
   useEffect(() => {
     if (reduceMotion) {
-      setProgress(100);
+      const nextProgress = isReadyToExit ? 100 : 92;
+      progressRef.current = nextProgress;
+      setProgress(nextProgress);
       return;
     }
 
@@ -89,32 +175,44 @@ export function SplashScreen({ onFinish }: SplashScreenProps) {
     const progressDurationMs = LOAD_DURATION * 1000;
 
     const updateProgress = () => {
+      if (isReadyToExitRef.current) {
+        return;
+      }
+
       const elapsedTime =
         window.performance.now() - progressStartTime - progressDelayMs;
+      const activeElapsedTime = Math.max(0, elapsedTime);
       const progressRatio = Math.max(
         0,
-        Math.min(1, elapsedTime / progressDurationMs),
+        Math.min(1, activeElapsedTime / progressDurationMs),
       );
       const easedProgress =
         progressRatio < 1 ? 1 - Math.pow(1 - progressRatio, 2.4) : 1;
+      const mainProgress = easedProgress * 88;
+      const crawlProgress =
+        progressRatio >= 1
+          ? Math.min(10.8, (activeElapsedTime - progressDurationMs) / 1000)
+          : 0;
+      const nextProgress = Math.min(98.8, mainProgress + crawlProgress);
 
-      setProgress(Math.round(easedProgress * 100));
+      progressRef.current = nextProgress;
+      setProgress(nextProgress);
     };
 
     let animationFrameId = 0;
     const animateProgress = () => {
+      if (isReadyToExitRef.current) {
+        return;
+      }
+
       updateProgress();
       animationFrameId = window.requestAnimationFrame(animateProgress);
     };
 
     animationFrameId = window.requestAnimationFrame(animateProgress);
-    const completeTimer = window.setTimeout(() => {
-      setProgress(100);
-    }, progressDelayMs + progressDurationMs);
 
     return () => {
       window.cancelAnimationFrame(animationFrameId);
-      window.clearTimeout(completeTimer);
     };
   }, [reduceMotion]);
 
@@ -293,6 +391,9 @@ export function SplashScreen({ onFinish }: SplashScreenProps) {
                       <motion.img
                         src={splashLogoLeftImage}
                         alt='Wealth Holding emblem'
+                        loading='eager'
+                        decoding='sync'
+                        fetchPriority='high'
                         className='relative z-20 h-20 w-auto shrink-0 transform-gpu object-contain will-change-[transform,opacity] [backface-visibility:hidden] [transform:translateZ(0)] md:h-28 lg:h-32'
                         variants={{
                           hidden: {
@@ -347,6 +448,9 @@ export function SplashScreen({ onFinish }: SplashScreenProps) {
                           ref={textLogoRef}
                           src={splashLogoRightImage}
                           alt='Wealth Holding'
+                          loading='eager'
+                          decoding='sync'
+                          fetchPriority='high'
                           className='h-16 w-auto transform-gpu object-contain drop-shadow-[0_0_24px_rgba(204,0,10,0.28)] will-change-[transform,opacity] [backface-visibility:hidden] md:h-24 lg:h-28'
                           variants={{
                             hidden: {
@@ -383,7 +487,7 @@ export function SplashScreen({ onFinish }: SplashScreenProps) {
                     </motion.div>
 
                     <motion.div
-                      className='mt-7 w-[min(30rem,76vw)]'
+                      className='mt-7 w-[min(32rem,78vw)]'
                       initial={{ opacity: 1, y: 0 }}
                       animate={{
                         opacity: 1,
@@ -402,24 +506,65 @@ export function SplashScreen({ onFinish }: SplashScreenProps) {
                         },
                       }}
                     >
-                      <div className='relative h-px w-full overflow-hidden rounded-full bg-white/14'>
+                      <div
+                        className='relative h-3 w-full overflow-visible rounded-full'
+                        role='progressbar'
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={Math.round(progress)}
+                        aria-label='Loading page resources'
+                      >
+                        <div className='absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-brand-cream/20 to-transparent' />
+                        <div className='absolute inset-x-4 top-1/2 h-7 -translate-y-1/2 rounded-full bg-brand-primary/14 blur-xl' />
+                        <div className='absolute inset-0 rounded-full border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.1),rgba(255,255,255,0.025))] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_10px_34px_rgba(0,0,0,0.28)]' />
+                        <div className='absolute inset-[3px] overflow-hidden rounded-full bg-black/70'>
+                          <div className='absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[length:18px_100%] opacity-30' />
+                        </div>
                         <motion.div
-                          className='h-full w-full origin-left bg-brand-white shadow-[0_0_14px_rgba(204,0,10,0.75)] will-change-transform'
+                          className='absolute inset-[3px] origin-left overflow-hidden rounded-full bg-gradient-to-r from-brand-red-900 via-brand-primary to-brand-cream shadow-[0_0_18px_rgba(204,0,10,0.72)] will-change-transform'
                           initial={{ scaleX: 0 }}
                           animate={{ scaleX: progress / 100 }}
                           transition={{
                             duration: reduceMotion ? 0.1 : 0.16,
                             ease: 'linear',
                           }}
+                        >
+                          {!reduceMotion ? (
+                            <motion.span
+                              aria-hidden='true'
+                              className='absolute inset-y-0 left-[-45%] w-[42%] -skew-x-12 bg-gradient-to-r from-transparent via-white/70 to-transparent mix-blend-screen'
+                              animate={{ x: ['0%', '360%'] }}
+                              transition={{
+                                duration: 1.45,
+                                ease: 'easeInOut',
+                                repeat: Infinity,
+                              }}
+                            />
+                          ) : null}
+                        </motion.div>
+                        <motion.span
+                          aria-hidden='true'
+                          className='absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border border-brand-cream/70 bg-brand-white shadow-[0_0_18px_rgba(238,237,218,0.72),0_0_26px_rgba(204,0,10,0.52)]'
+                          style={{ left: `calc(${progress}% - 0.5rem)` }}
+                          animate={{
+                            opacity: progress > 2 ? 1 : 0,
+                            scale: reduceMotion ? 1 : [0.92, 1.08, 0.96],
+                          }}
+                          transition={{
+                            duration: reduceMotion ? 0.1 : 1.2,
+                            ease: 'easeInOut',
+                            repeat: reduceMotion ? 0 : Infinity,
+                          }}
                         />
                       </div>
-                      <div className='mt-2 flex items-center justify-center gap-1.5'>
+                      <div className='mt-3 flex items-center justify-center gap-2'>
                         {[0, 1, 2].map((index) => (
                           <motion.span
                             key={index}
-                            className='h-1 w-1 rounded-full bg-brand-primary/70 shadow-[0_0_8px_rgba(204,0,10,0.65)]'
+                            className='h-1.5 w-1.5 rounded-full bg-brand-cream/70 shadow-[0_0_10px_rgba(238,237,218,0.45)]'
                             animate={{
-                              opacity: reduceMotion ? 0.7 : [0.28, 1, 0.28],
+                              opacity: reduceMotion ? 0.7 : [0.24, 1, 0.24],
+                              scale: reduceMotion ? 1 : [0.86, 1.18, 0.86],
                             }}
                             transition={{
                               delay: index * 0.16,
@@ -458,7 +603,7 @@ export function SplashScreen({ onFinish }: SplashScreenProps) {
                         y: reduceMotion ? 0 : -14,
                       }}
                       transition={{
-                        duration: reduceMotion ? 0.12 : 0.5,
+                        duration: reduceMotion ? 0.12 : 0.7,
                         ease: PREMIUM_EASE,
                       }}
                     >

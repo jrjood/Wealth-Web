@@ -214,10 +214,7 @@ export default function AdminProjects() {
       payload.append('imageUrl', formData.imageUrl.trim());
       payload.append('existingImageUrl', formData.imageUrl.trim());
       payload.append('projectLogoUrl', formData.projectLogoUrl.trim());
-      payload.append(
-        'existingProjectLogoUrl',
-        formData.projectLogoUrl.trim(),
-      );
+      payload.append('existingProjectLogoUrl', formData.projectLogoUrl.trim());
       payload.append('masterPlanImage', formData.masterPlanImage.trim());
       payload.append(
         'existingMasterPlanImage',
@@ -533,7 +530,7 @@ export default function AdminProjects() {
                           Under Construction
                         </SelectItem>
                         <SelectItem value='Completed'>Completed</SelectItem>
-                        <SelectItem value='Selling Now'>Selling Now</SelectItem>
+                        <SelectItem value='Selling Now'>Launching</SelectItem>
                         <SelectItem value='Coming Soon'>Coming Soon</SelectItem>
                       </SelectContent>
                     </Select>
@@ -582,7 +579,9 @@ export default function AdminProjects() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor='projectLogoFile'>Project logo upload</Label>
+                      <Label htmlFor='projectLogoFile'>
+                        Project logo upload
+                      </Label>
                       <Input
                         id='projectLogoFile'
                         type='file'

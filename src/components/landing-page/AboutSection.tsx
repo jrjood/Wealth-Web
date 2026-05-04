@@ -77,8 +77,8 @@ const AboutSection = () => {
       <div className='relative z-50 mt-8 md:mt-12 flex justify-start w-full'>
         <AnimatedPillButton
           label='Explore Opportunities'
-          tone='brand'
-          className='w-full justify-center !border-0 sm:w-auto'
+          tone='cream-transparent'
+          className='w-full justify-center sm:w-auto'
           labelClassName='text-sm md:text-base'
           onClick={() => navigate('/projects')}
         />

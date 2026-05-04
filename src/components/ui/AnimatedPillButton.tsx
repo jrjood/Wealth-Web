@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 type AnimatedPillButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   label: string;
   alternateLabel?: string;
-  tone?: 'light' | 'brand' | 'dark' | 'outline-light';
+  tone?: 'light' | 'brand' | 'dark' | 'outline-light' | 'cream-transparent';
   innerClassName?: string;
   labelClassName?: string;
   children?: ReactNode;
@@ -36,6 +36,13 @@ const toneClasses = {
       'border-[hsl(var(--brand-gray)/0.65)] bg-transparent hover:border-[hsl(var(--brand-cream))]',
     overlay: 'bg-[hsl(var(--brand-cream))]',
     primaryLabel: 'text-white',
+  },
+  'cream-transparent': {
+    alternateLabel: 'text-[hsl(var(--brand-black))]',
+    button:
+      'bg-[hsl(var(--brand-cream))] border-[hsl(var(--brand-cream))] hover:bg-transparent hover:border-[hsl(var(--brand-black))]',
+    overlay: 'bg-transparent',
+    primaryLabel: 'text-[hsl(var(--brand-black))]',
   },
 } as const;
 

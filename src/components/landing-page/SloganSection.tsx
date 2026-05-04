@@ -19,7 +19,7 @@ const SloganSection = () => {
 
     const tween = gsap.to(stampRef.current, {
       ease: 'none',
-      rotate: 140,
+      rotate: 640,
       scrollTrigger: {
         end: 'bottom top',
         scrub: 1,
